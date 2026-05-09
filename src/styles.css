@@ -1250,7 +1250,8 @@ main {
   z-index: 8;
   padding: 5px 8px;
   border-radius: 4px;
-  max-width: 120px;
+  width: max-content;
+  white-space: nowrap;
   color: #4e1534;
   background: rgba(255, 213, 226, .94);
   box-shadow: var(--shadow-soft);
@@ -1260,6 +1261,10 @@ main {
   line-height: 1;
   touch-action: none;
   pointer-events: auto;
+}
+
+.drag-sticker img {
+  max-width: none !important;
 }
 
 .drag-sticker.small {
