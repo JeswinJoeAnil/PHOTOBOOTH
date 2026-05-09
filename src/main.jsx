@@ -994,25 +994,58 @@ function DecoHandles({ deco, setDecorations, elementRef }) {
 
 function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
   const elementRef = useRef(null);
-  const handleDragEnd = () => {
-    const parent = elementRef.current?.closest('.decorations-layer');
-    if (!parent || !elementRef.current) return;
 
-    const rect = elementRef.current.getBoundingClientRect();
+  const handlePointerDown = (e) => {
+    // Always trigger the original onPointerDown to set it as active
+    onPointerDown(e);
+
+    // If clicking on a handle, do not initiate dragging
+    if (e.target.closest('.deco-handle')) return;
+
+    e.preventDefault();
+    const target = e.currentTarget;
+    target.setPointerCapture(e.pointerId);
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startDecoX = deco.x;
+    const startDecoY = deco.y;
+
+    const parent = elementRef.current?.closest('.decorations-layer');
+    if (!parent) return;
     const parentRect = parent.getBoundingClientRect();
 
-    const centerX = rect.left + rect.width / 2 - parentRect.left;
-    const centerY = rect.top + rect.height / 2 - parentRect.top;
+    const onMove = (moveEvent) => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+      const newX = startDecoX + (dx / parentRect.width) * 100;
+      const newY = startDecoY + (dy / parentRect.height) * 100;
+      
+      // Update DOM directly for smooth 60fps dragging without re-renders
+      target.style.left = `${newX}%`;
+      target.style.top = `${newY}%`;
+    };
 
-    const newX = (centerX / parentRect.width) * 100;
-    const newY = (centerY / parentRect.height) * 100;
+    const onUp = (upEvent) => {
+      target.releasePointerCapture(upEvent.pointerId);
+      target.removeEventListener('pointermove', onMove);
+      target.removeEventListener('pointerup', onUp);
+      
+      const dx = upEvent.clientX - startX;
+      const dy = upEvent.clientY - startY;
+      const newX = startDecoX + (dx / parentRect.width) * 100;
+      const newY = startDecoY + (dy / parentRect.height) * 100;
 
-    setDecorations(prev => prev.map(d => d.id === deco.id ? {
-      ...d,
-      x: newX,
-      y: newY,
-      dragKey: (d.dragKey || 0) + 1
-    } : d));
+      // Commit the final position to state
+      setDecorations(prev => prev.map(d => d.id === deco.id ? {
+        ...d,
+        x: newX,
+        y: newY,
+      } : d));
+    };
+
+    target.addEventListener('pointermove', onMove);
+    target.addEventListener('pointerup', onUp);
   };
 
   const style = {
@@ -1035,13 +1068,11 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
     return (
       <motion.div
         className={className}
-        drag
-        dragMomentum={false}
         ref={elementRef}
         style={{ ...style, color: deco.color, fontFamily: deco.font, boxShadow: 'none', textShadow: '0 2px 8px rgba(0,0,0,0.1)', ...bgStyle }}
-        onPointerDown={onPointerDown}
-        onDragEnd={handleDragEnd}
-        whileDrag={{ scale: deco.scale * 1.05 }}
+        onPointerDown={handlePointerDown}
+        whileTap={{ scale: deco.scale * 1.05 }}
+        transition={{ type: 'tween', duration: 0 }}
       >
         {deco.content}
         {isActive && <DecoHandles deco={deco} setDecorations={setDecorations} elementRef={elementRef} />}
@@ -1052,15 +1083,13 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
     return (
       <motion.div
         className={className}
-        drag
-        dragMomentum={false}
         ref={elementRef}
         style={{ ...style, ...bgStyle, color: deco.showBg !== false ? '#fff' : 'inherit' }}
-        onPointerDown={onPointerDown}
-        onDragEnd={handleDragEnd}
-        whileDrag={{ scale: deco.scale * 1.05 }}
+        onPointerDown={handlePointerDown}
+        whileTap={{ scale: deco.scale * 1.05 }}
+        transition={{ type: 'tween', duration: 0 }}
       >
-        {deco.isImage ? <img src={asset(deco.content)} alt="" style={{ width: 100, display: 'block', pointerEvents: 'none' }} /> : deco.content}
+        {deco.isImage ? <img src={asset(deco.content)} alt="" style={{ width: 100, display: 'block', pointerEvents: 'none' }} draggable="false" /> : deco.content}
         {isActive && <DecoHandles deco={deco} setDecorations={setDecorations} elementRef={elementRef} />}
       </motion.div>
     );
