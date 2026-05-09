@@ -766,7 +766,7 @@ function CameraEditor(props) {
   ];
 
   return (
-    <motion.section className="booth-card editor-card" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ type: 'spring', delay: 0.08 }}>
+    <motion.section className="booth-card camera-editor-card" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ type: 'spring', delay: 0.08 }}>
       <div className="section-title"><Sparkles size={18} /><span>Live Effects</span></div>
       <div className="tool-tabs">
         {tabs.map((tab) => (

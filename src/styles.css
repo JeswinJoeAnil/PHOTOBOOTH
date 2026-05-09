@@ -2725,6 +2725,46 @@ main {
     font-size: 42px;
     letter-spacing: 1px;
   }
+
+  /* Reorder sections for mobile */
+  main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .hero {
+    order: 1;
+    margin-bottom: 0;
+  }
+
+  .studio-grid {
+    display: contents;
+  }
+
+  .capture-card {
+    order: 2;
+  }
+
+  .memory-lab-section {
+    order: 3;
+    padding: 0;
+    margin: 0;
+  }
+
+  .camera-editor-card {
+    order: 4;
+  }
+
+  .template-section {
+    order: 5;
+    padding: 0;
+    margin: 0;
+  }
+
+  .site-footer {
+    order: 6;
+  }
 }
 
 /*  Feedback Overlay  */
