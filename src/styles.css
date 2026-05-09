@@ -418,11 +418,15 @@ main {
 .camera-controls {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
   padding-top: 24px;
 }
 
 .camera-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 42px;
   height: 36px;
   border-radius: 18px;
@@ -431,7 +435,9 @@ main {
 }
 
 .camera-controls .shutter {
-  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 84px;
   height: 84px;
   color: #251018;
