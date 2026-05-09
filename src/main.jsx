@@ -467,8 +467,8 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, s
       <div className="capture-actions">
         {!shooting ? (
           <>
-            <button className="shutter-large" onClick={runSingleCapture}><Camera size={24} /> Capture Shot</button>
             <button className="shutter-large burst-button" onClick={() => runSequentialCapture(mode)}><Zap size={22} /> Burst Mode</button>
+            <button className="shutter-large" onClick={runSingleCapture}><Camera size={24} /> Capture Shot</button>
             <button className="pill-button" onClick={() => setCaptured([])}> Clear roll</button>
           </>
         ) : (
@@ -857,12 +857,15 @@ function PhotoResult({ frame, photos, filter, accent, decorations, setDecoration
 
 function DoodleCanvas({ stripTab, doodlePaths, setDoodlePaths, doodleBrush }) {
   const [currentPath, setCurrentPath] = useState(null);
+  const containerRef = useRef(null);
 
   const handlePointerDown = (e) => {
     if (stripTab !== 'doodle') return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    // Map to 900px base coordinate system
+    const scale = 900 / rect.width;
+    const x = (e.clientX - rect.left) * scale;
+    const y = (e.clientY - rect.top) * scale;
     setCurrentPath({ points: [{ x, y }], ...doodleBrush });
     e.target.setPointerCapture(e.pointerId);
   };
@@ -870,8 +873,9 @@ function DoodleCanvas({ stripTab, doodlePaths, setDoodlePaths, doodleBrush }) {
   const handlePointerMove = (e) => {
     if (stripTab !== 'doodle' || !currentPath) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scale = 900 / rect.width;
+    const x = (e.clientX - rect.left) * scale;
+    const y = (e.clientY - rect.top) * scale;
     setCurrentPath(prev => ({ ...prev, points: [...prev.points, { x, y }] }));
   };
 
@@ -882,8 +886,12 @@ function DoodleCanvas({ stripTab, doodlePaths, setDoodlePaths, doodleBrush }) {
     e.target.releasePointerCapture(e.pointerId);
   };
 
+  // Calculate dynamic height for viewBox based on the 900px width
+  const viewHeight = containerRef.current ? (containerRef.current.offsetHeight * (900 / containerRef.current.offsetWidth)) : 1000;
+
   return (
     <div
+      ref={containerRef}
       className={`doodle-overlay ${stripTab === 'doodle' ? 'active' : ''}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -891,7 +899,7 @@ function DoodleCanvas({ stripTab, doodlePaths, setDoodlePaths, doodleBrush }) {
       onPointerCancel={handlePointerUp}
       style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 15, pointerEvents: stripTab === 'doodle' ? 'auto' : 'none', touchAction: 'none' }}
     >
-      <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
+      <svg width="100%" height="100%" viewBox={`0 0 900 ${viewHeight}`} style={{ overflow: 'visible' }}>
         {doodlePaths.map((path, i) => (
           <polyline key={i} points={path.points.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke={path.color} strokeWidth={path.size} strokeLinecap="round" strokeLinejoin="round" filter={path.shadow ? `drop-shadow(0px 0px ${path.shadow}px ${path.color})` : 'none'} />
         ))}
@@ -1234,17 +1242,20 @@ function Footer() {
 
 async function renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette }) {
   const baseW = 900;
-  const columns = frame.id === 'magazine' ? 2 : 1;
+  // Match CSS columns: magazine, chrome, and camera frames use a 2-column grid
+  const columns = (frame.id === 'magazine' || frame.id === 'chrome' || frame.id === 'camera') ? 2 : 1;
   const gap = 36;
   const margin = 80;
+  const topPadding = 110;
+  const bottomPadding = 150;
   
   const slotW = columns === 2 ? (baseW - margin * 2 - gap) / 2 : baseW - margin * 2;
-  // Use a 4:3 aspect ratio for traditional landscape photobooth photos
-  const slotH = frame.id === 'magazine' ? 310 : slotW * 0.75; 
+  // Use a more portrait-oriented ratio (0.85) for a "lengthy" traditional photostrip feel
+  const slotH = slotW * 0.85; 
   
-  const baseH = frame.id === 'magazine' 
-    ? 1100 
-    : 260 + gap * (photos.length - 1) + slotH * photos.length;
+  const rows = Math.ceil(photos.length / columns);
+  // Calculate baseH dynamically based on rows to ensure all photos fit perfectly
+  const baseH = topPadding + bottomPadding + (gap * (rows - 1)) + (slotH * rows);
 
   // Calculate bounds including photostrip (0,0 to baseW,baseH) and all decorations
   let minX = 0;
@@ -1304,11 +1315,11 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
     ctx.save();
     ctx.translate(x + slotW / 2, y + slotH / 2);
     ctx.rotate((rotation + (index % 2 ? 1.5 : -1.2)) * Math.PI / 180);
-    ctx.fillStyle = '#fffaf3';
-    ctx.shadowColor = 'rgba(20,12,8,.25)';
-    ctx.shadowBlur = 22;
-    ctx.shadowOffsetY = 10;
-    ctx.fillRect(-slotW / 2 - 14, -slotH / 2 - 14, slotW + 28, slotH + 28);
+    ctx.fillStyle = '#151515';
+    ctx.shadowColor = 'rgba(0,0,0,.3)';
+    ctx.shadowBlur = 30;
+    ctx.shadowOffsetY = 15;
+    ctx.fillRect(-slotW / 2 - 10, -slotH / 2 - 10, slotW + 20, slotH + 20);
     ctx.shadowColor = 'transparent';
     ctx.filter = filter.css;
     drawCover(ctx, img, -slotW / 2, -slotH / 2, slotW, slotH, zoom);
@@ -1387,6 +1398,30 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
         ctx.restore();
       }
     }
+  }
+
+  // Draw Doodles
+  if (doodlePaths && doodlePaths.length > 0) {
+    doodlePaths.forEach(path => {
+      if (path.points.length < 2) return;
+      ctx.beginPath();
+      ctx.strokeStyle = path.color;
+      ctx.lineWidth = path.size;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      
+      if (path.shadow) {
+        ctx.shadowBlur = path.shadow;
+        ctx.shadowColor = path.color;
+      }
+      
+      ctx.moveTo(path.points[0].x, path.points[0].y);
+      for (let i = 1; i < path.points.length; i++) {
+        ctx.lineTo(path.points[i].x, path.points[i].y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    });
   }
 
   ctx.restore();

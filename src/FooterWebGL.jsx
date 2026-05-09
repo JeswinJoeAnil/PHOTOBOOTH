@@ -347,7 +347,7 @@ export default function FooterWebGL({ freeze }) {
         left: 0,
         width: '100%',
         height: '100%',
-        zIndex: 0,
+        zIndex: -1,
         overflow: 'hidden',
         pointerEvents: 'auto',
         touchAction: 'none'
