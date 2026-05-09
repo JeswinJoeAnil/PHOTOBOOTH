@@ -101,10 +101,33 @@ const frames = [
 
 const stickers = ['good vibes', 'Y2K', '2004', 'no bad days', 'xoxo', 'iconic', 'lovely day', 'PM 04:23', 'sticker1.png', 'sticker2_1.png', 'sticker2_2.png', 'sticker2_3.png', 'sticker2_4.png', 'sticker2_5.png', 'sticker2_6.png', 'sticker2_7.png', 'sticker2_8.png', 'sticker2_9.png', 'sticker2_10.png', 'sticker2_11.png', 'sticker2_12.png', 'sticker2_13.png', 'sticker2_14.png', 'sticker2_15.png', 'sticker2_16.png', 'sticker2_17.png', 'sticker2_18.png', 'sticker2_19.png', 'sticker2_20.png', 'sticker2_21.png', 'sticker2_22.png', 'sticker2_23.png', 'sticker2_24.png', 'sticker2_25.png', 'sticker2_26.png', 'sticker2_27.png', 'sticker2_28.png', 'sticker2_29.png', 'sticker2_30.png', 'sticker2_31.png', 'sticker2_32.png', 'sticker2_33.png', 'sticker2_34.png', 'sticker2_35.png', 'sticker2_36.png', 'sticker2_37.png', 'sticker2_38.png', 'sticker2_39.png', 'sticker2_40.png', 'stickers3_1.png', 'stickers3_2.png', 'stickers3_3.png', 'stickers3_4.png', 'stickers3_5.png', 'stickers3_6.png', 'stickers3_7.png', 'stickers3_8.png', 'stickers3_9.png', 'stickers3_10.png', 'stickers3_11.png', 'stickers3_12.png', 'stickers3_13.png', 'stickers3_14.png', 'stickers3_15.png', 'stickers3_16.png', 'stickers3_17.png', 'stickers3_18.png', 'stickers3_19.png', 'stickers3_20.png', 'stickers3_21.png', 'stickers3_22.png', 'stickers3_23.png', 'stickers3_24.png', 'stickers3_25.png', 'stickers3_26.png', 'stickers3_27.png', 'stickers3_28.png', 'stickers3_29.png', 'stickers3_30.png', 'stickers3_31.png', 'stickers3_32.png', 'stickers3_33.png', 'stickers3_34.png', 'stickers3_35.png', 'stickers3_36.png', 'stickers3_37.png', 'stickers3_38.png', 'stickers3_39.png', 'stickers3_40.png', 'stickers3_41.png', 'stickers3_42.png', 'stickers3_43.png', 'stickers3_44.png', 'stickers3_45.png', 'stickers3_46.png', 'stickers3_47.png', 'stickers3_48.png', 'stickers3_49.png', 'stickers3_50.png', 'stickers3_51.png', 'stickers3_52.png', 'stickers3_53.png', 'stickers3_54.png', 'stickers3_55.png', 'stickers3_56.png', 'stickers3_57.png', 'stickers3_58.png', 'stickers3_59.png', 'stickers3_60.png', 'sticker4_1.png'];
 
+const getFormattedTimestamp = () => {
+  const date = new Date();
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours % 12 || 12;
+  const displayMinutes = minutes < 10 ? `0${minutes}` : minutes;
+  
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const month = months[date.getMonth()];
+  const day = date.getDate();
+  const year = date.getFullYear();
+  
+  return {
+    time: `${ampm} ${displayHours}:${displayMinutes}`,
+    date: `${month}. ${day} ${year}`
+  };
+};
+
 function App() {
   const [mode, setMode] = useState(4);
   const [timer, setTimer] = useState(3);
   const [captured, setCaptured] = useState([]);
+  const [timestamp, setTimestamp] = useState(getFormattedTimestamp());
+  const updateTimestamp = () => {
+    setTimestamp(getFormattedTimestamp());
+  };
   const [fitSettings, setFitSettings] = useState({}); // { [index]: 'cover' | 'contain' }
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [frame, setFrame] = useState(frames[0]);
@@ -191,6 +214,7 @@ function App() {
         }}
         photos={stripPhotos}
         filter={selectedFilter}
+        timestamp={timestamp}
       />
       <section id="booth" className="studio-grid">
         <CameraBooth
@@ -203,6 +227,8 @@ function App() {
           activeFilter={selectedFilter}
           captured={captured}
           setCaptured={setCaptured}
+          timestamp={timestamp}
+          setTimestamp={setTimestamp}
           flashOn={flashOn}
           setFlashOn={setFlashOn}
           flashFire={flashFire}
@@ -235,6 +261,7 @@ function App() {
           developing={developing} setDeveloping={setDeveloping}
           zoom={zoom} setZoom={setZoom} rotation={rotation} setRotation={setRotation} vignette={vignette}
           stripTab={stripTab} setStripTab={setStripTab} accentColor={accent} setAccentColor={setAccent}
+          timestamp={timestamp}
           captured={captured}
           fitSettings={fitSettings} setFitSettings={setFitSettings}
         />
@@ -292,7 +319,7 @@ function Header({ audioOn, toggleAudio, nextTrack, onFeedbackOpen, onMenuOpen })
   );
 }
 
-function Hero({ onStart, photos, filter }) {
+function Hero({ onStart, photos, filter, timestamp }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const springX = useSpring(x, { stiffness: 55, damping: 18 });
@@ -327,7 +354,7 @@ function Hero({ onStart, photos, filter }) {
         <div className="camera-shell">
           <div className="camera-screen">
             <PhotoStack photos={photos.slice(0, 3)} filter={filter} />
-            <CameraOverlay />
+            <CameraOverlay timestamp={timestamp} />
           </div>
           <div className="camera-controls">
             <button><RefreshCcw size={15} /></button>
@@ -342,13 +369,13 @@ function Hero({ onStart, photos, filter }) {
       </motion.div>
 
       <motion.div className="hero-side-device" initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.24, type: 'spring' }}>
-        <DeviceFrame photos={photos} filter={filter} compact />
+        <DeviceFrame photos={photos} filter={filter} compact timestamp={timestamp} />
       </motion.div>
     </section>
   );
 }
 
-function CameraBooth({ isOpen, setOpen, mode, setMode, timer, setTimer, activeFilter, captured, setCaptured, flashOn, setFlashOn, flashFire, setFlashFire, mirrorOn, setMirrorOn, onCapture }) {
+function CameraBooth({ isOpen, setOpen, mode, setMode, timer, setTimer, activeFilter, captured, setCaptured, timestamp, setTimestamp, flashOn, setFlashOn, flashFire, setFlashFire, mirrorOn, setMirrorOn, onCapture }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [streaming, setStreaming] = useState(false);
@@ -357,6 +384,10 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, timer, setTimer, activeFi
   const [error, setError] = useState('');
   const [shooting, setShooting] = useState(false);
   const shootingRef = useRef(false);
+
+  const updateTimestamp = () => {
+    setTimestamp(getFormattedTimestamp());
+  };
 
   useEffect(() => {
     if (!isOpen || streaming) return;
@@ -381,6 +412,11 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, timer, setTimer, activeFi
   const captureOnePhoto = (currentCaptured) => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
+
+    if (currentCaptured.length === 0) {
+      updateTimestamp();
+    }
+
     if (!canvas || !video || !streaming) {
       const fallback = assetPhotos[currentCaptured.length % assetPhotos.length];
       fireFlash();
@@ -410,6 +446,10 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, timer, setTimer, activeFi
     if (remainingSlots <= 0) {
       alert(`The photostrip is already full (${mode} photos). Please clear the roll to add more.`);
       return;
+    }
+
+    if (captured.length === 0) {
+      updateTimestamp();
     }
 
     const filesToProcess = files.slice(0, remainingSlots);
@@ -516,7 +556,7 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, timer, setTimer, activeFi
         <div className="camera-stage">
           <video ref={videoRef} autoPlay playsInline muted className="live-video" style={{ filter: activeFilter.css, transform: mirrorOn ? 'scaleX(-1)' : 'none' }} />
           {!streaming && <img src={assetPhotos[captured.length % assetPhotos.length]} className="live-video fallback-video" style={{ filter: activeFilter.css }} alt="" />}
-          <CameraOverlay />
+          <CameraOverlay timestamp={timestamp} />
           <AnimatePresence mode="wait">
             {countdown && <motion.div className="countdown" key={countdown} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 1.5, opacity: 0 }}>{countdown}</motion.div>}
           </AnimatePresence>
@@ -583,7 +623,7 @@ function StripEditor(props) {
   const handleAddText = () => {
     const newId = Date.now().toString();
     const randomBg = ['#ff5aaf', '#00ffcc', '#ffcc00', '#cc00ff', '#111111', '#ff4444', '#44aaff'][Math.floor(Math.random() * 7)];
-    setDecorations([...decorations, { id: newId, type: 'text', content: 'New Text', x: 50, y: 50, rotation: 0, scale: 1, font: 'Inter', color: accentColor, bgColor: randomBg, showBg: false }]);
+    setDecorations([...decorations, { id: newId, type: 'text', content: 'New Text', x: 50, y: 50, rotation: 0, scale: 1, font: 'Pacifico', color: accentColor, bgColor: randomBg, showBg: false }]);
     setActiveDecoId(newId);
   };
 
@@ -633,14 +673,20 @@ function StripEditor(props) {
                 <div className="text-options" style={{ display: 'flex', gap: '12px' }}>
                   <label style={{ flex: 1 }}><span>Font</span>
                     <select value={activeDeco.font} onChange={(e) => updateActiveDeco({ font: e.target.value })} style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid var(--muted)', background: 'transparent' }}>
-                      <option value="Inter">Inter</option>
-                      <option value="Fraunces">Fraunces</option>
-                      <option value="Space Mono">Space Mono</option>
-                      <option value="VT323">VT323</option>
-                      <option value="Caveat">Caveat</option>
+                      <option value="Pacifico">Pacifico (Cute Script)</option>
+                      <option value="Caveat">Caveat (Handwritten)</option>
+                      <option value="Indie Flower">Indie Flower</option>
+                      <option value="Gloria Hallelujah">Gloria (Playful)</option>
+                      <option value="Patrick Hand">Patrick Hand</option>
+                      <option value="Amatic SC">Amatic (Tall)</option>
+                      <option value="Shadows Into Light">Shadows</option>
+                      <option value="Satisfy">Satisfy (Elegant)</option>
+                      <option value="Gochi Hand">Gochi (Sweet)</option>
+                      <option value="Handlee">Handlee</option>
+                      <option value="Coming Soon">Coming Soon</option>
                       <option value="Permanent Marker">Marker</option>
-                      <option value="Bebas Neue">Bebas</option>
-                      <option value="Playfair Display">Playfair</option>
+                      <option value="Inter">Classic Inter</option>
+
                     </select>
                   </label>
                   <label><span>Color</span><input type="color" value={activeDeco.color} onChange={(e) => updateActiveDeco({ color: e.target.value })} /></label>
@@ -829,7 +875,7 @@ function MemoryLab(props) {
     doodlePaths, setDoodlePaths, doodleBrush, setDoodleBrush,
     developing, setDeveloping, zoom, setZoom, rotation, setRotation, vignette,
     stripTab, setStripTab, accentColor, setAccentColor, captured,
-    fitSettings, setFitSettings
+    fitSettings, setFitSettings, timestamp
   } = props;
   const exportRef = useRef(null);
 
@@ -837,7 +883,7 @@ function MemoryLab(props) {
     setDeveloping(type);
     await new Promise((resolve) => window.setTimeout(resolve, 1350));
     if (type === 'png' || type === 'jpg') {
-      const canvas = await renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette, fitSettings });
+      const canvas = await renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette, fitSettings, timestamp });
       const link = document.createElement('a');
       link.download = `memorie-${frame.id}.${type === 'png' ? 'png' : 'jpg'}`;
       link.href = canvas.toDataURL(type === 'png' ? 'image/png' : 'image/jpeg', 0.92);
@@ -857,6 +903,7 @@ function MemoryLab(props) {
           stripTab={stripTab}
           zoom={zoom} rotation={rotation} vignette={vignette}
           fitSettings={fitSettings}
+          timestamp={timestamp}
         />
       </div>
 
@@ -913,7 +960,7 @@ function MemoryLab(props) {
   );
 }
 
-function PhotoResult({ frame, photos, filter, accent, decorations, setDecorations, activeDecoId, setActiveDecoId, doodlePaths, setDoodlePaths, doodleBrush, stripTab, zoom, rotation, vignette, fitSettings }) {
+function PhotoResult({ frame, photos, filter, accent, decorations, setDecorations, activeDecoId, setActiveDecoId, doodlePaths, setDoodlePaths, doodleBrush, stripTab, zoom, rotation, vignette, fitSettings, timestamp }) {
   const wrapperRef = useRef(null);
   const stripRef = useRef(null);
   const [scale, setScale] = useState(1);
@@ -955,7 +1002,7 @@ function PhotoResult({ frame, photos, filter, accent, decorations, setDecoration
           if (e.target === e.currentTarget) setActiveDecoId(null);
         }}
       >
-        <div className="result-meta">PM 04:23 / MAY. 23 2004</div>
+        <div className="result-meta">{timestamp.time} / {timestamp.date}</div>
         <div className="photo-slots" onClick={() => setActiveDecoId(null)}>
           {photos.map((photo, index) => (
             <DraggablePhoto key={`${photo}-${index}`} photo={photo} filter={filter} index={index} zoom={zoom} rotation={rotation} fitMode={fitSettings?.[index]} />
@@ -1257,30 +1304,30 @@ function PhotoStack({ photos, filter }) {
   );
 }
 
-function DeviceFrame({ photos, filter, compact }) {
+function DeviceFrame({ photos, filter, compact, timestamp }) {
   return (
     <div className={`device-frame ${compact ? 'compact' : ''}`}>
       <div className="side-icons">
         <span><Grid2X2 size={16} />2 shots</span>
         <span className="active"><Grid2X2 size={16} />4 shots</span>
-        <span><Film size={16} />GIF mode</span>
+        <span><Film size={16} />Film mode</span>
       </div>
       <div className="device-screen">
         <img src={photos[0]} style={{ filter: filter.css }} alt="" />
-        <CameraOverlay />
+        <CameraOverlay timestamp={timestamp} />
       </div>
       <div className="device-counter">3</div>
     </div>
   );
 }
 
-function CameraOverlay() {
+function CameraOverlay({ timestamp }) {
   return (
     <div className="cam-overlay" aria-hidden="true">
       <span className="rec">REC</span>
       <span className="timer">00:00:08</span>
       <span className="battery"><BatteryMedium size={24} /></span>
-      <span className="timestamp">PM 04:23<br />MAY. 23 2004</span>
+      <span className="timestamp">{timestamp.time}<br />{timestamp.date}</span>
       <span className="focus-corner one" />
       <span className="focus-corner two" />
       <span className="focus-corner three" />
@@ -1367,7 +1414,7 @@ function Footer() {
   );
 }
 
-async function renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette, fitSettings }) {
+async function renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette, fitSettings, timestamp }) {
   const baseW = 900;
   // Match CSS columns: magazine, chrome, and camera frames use a 2-column grid
   const columns = (frame.id === 'magazine' || frame.id === 'chrome' || frame.id === 'camera') ? 2 : 1;
@@ -1476,7 +1523,7 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
   ctx.fillText('memorie+', 58, baseH - 88);
   ctx.font = '24px monospace';
   ctx.fillStyle = frame.id === 'doodle' ? '#f5f0e7' : '#252525';
-  ctx.fillText('PM 04:23  MAY. 23 2004', baseW - 390, baseH - 54);
+  ctx.fillText(`${timestamp.time}  ${timestamp.date}`, baseW - 390, baseH - 54);
 
   const canvasScale = baseW / 380;
 
@@ -1754,5 +1801,4 @@ function MobileMenu({ isOpen, onClose, onFeedbackOpen }) {
     </AnimatePresence>
   );
 }
-
-
+createRoot(document.getElementById('root')).render(<App />);
