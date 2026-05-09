@@ -14,6 +14,7 @@ import {
   Grid2X2,
   Image as ImageIcon,
   Menu,
+  MessageSquare,
   Mic2,
   Minus,
   MousePointer2,
@@ -30,6 +31,7 @@ import {
   Video,
   Wand2,
   Zap,
+  Upload,
 } from 'lucide-react';
 import './styles.css';
 
@@ -145,6 +147,7 @@ function App() {
   const [editorTab, setEditorTab] = useState('filters');
   const [stripTab, setStripTab] = useState('text');
   const [mirrorOn, setMirrorOn] = useState(true);
+  const [isFeedbackOpen, setFeedbackOpen] = useState(false);
 
   const stripPhotos = useMemo(() => {
     return Array.from({ length: mode }, (_, index) => {
@@ -161,7 +164,12 @@ function App() {
   return (
     <main>
       <AmbientLayers />
-      <Header audioOn={audioOn} toggleAudio={toggleAudio} nextTrack={nextTrack} />
+      <Header 
+        audioOn={audioOn} 
+        toggleAudio={toggleAudio} 
+        nextTrack={nextTrack} 
+        onFeedbackOpen={() => setFeedbackOpen(true)}
+      />
       <audio
         ref={audioRef}
         src={ASSETS.playlist[trackIndex]}
@@ -221,26 +229,36 @@ function App() {
         />
       </section>
       <Footer />
-      <AnimatePresence>{flashFire && <motion.div className="flash" initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} exit={{ opacity: 0 }} transition={{ duration: 0.46 }} />}</AnimatePresence>
+      <AnimatePresence>
+        {isFeedbackOpen && (
+          <FeedbackOverlay 
+            onClose={() => setFeedbackOpen(false)} 
+            ownerEmail="jeswinjoeanil5@gmail.com" 
+          />
+        )}
+        {flashFire && <motion.div className="flash" initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} exit={{ opacity: 0 }} transition={{ duration: 0.46 }} />}</AnimatePresence>
     </main>
   );
 }
 
-function Header({ audioOn, toggleAudio, nextTrack }) {
+function Header({ audioOn, toggleAudio, nextTrack, onFeedbackOpen }) {
   return (
     <motion.header className="site-header" initial={{ y: -36, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 90, damping: 14 }}>
       <a className="brand" href="#top">memorie<span>+</span></a>
-      <nav>
+      <nav className="desktop-nav">
         <a href="#booth">Booth</a>
         <a href="#templates">Templates</a>
         <a href="#memory-lab">Gallery</a>
         <a href="#export">Export</a>
+        <button className="feedback-link-btn" onClick={onFeedbackOpen}>
+          <MessageSquare size={14} /> Feedback
+        </button>
       </nav>
       <div className="header-actions">
         <div className="audio-controls-group">
           <button className="pill-button audio-toggle" onClick={toggleAudio} aria-pressed={audioOn}>
             <CassetteTape size={16} />
-            {audioOn ? 'Sound On' : 'Sound Off'}
+            <span className="audio-label">{audioOn ? 'Sound On' : 'Sound Off'}</span>
             <Sparkles size={14} />
           </button>
           {audioOn && (
@@ -249,7 +267,10 @@ function Header({ audioOn, toggleAudio, nextTrack }) {
             </button>
           )}
         </div>
-        <button className="icon-button" aria-label="Open menu"><Menu size={20} /></button>
+        <button className="icon-button feedback-mobile-btn" onClick={onFeedbackOpen} aria-label="Feedback">
+          <MessageSquare size={20} />
+        </button>
+        <button className="icon-button menu-btn" aria-label="Open menu"><Menu size={20} /></button>
       </div>
     </motion.header>
   );
@@ -365,6 +386,35 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, s
     return [...currentCaptured, canvas.toDataURL('image/png')];
   };
 
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    const remainingSlots = mode - captured.length;
+    if (remainingSlots <= 0) {
+      alert(`The photostrip is already full (${mode} photos). Please clear the roll to add more.`);
+      return;
+    }
+
+    const filesToProcess = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      alert(`Only the first ${remainingSlots} images were added because the strip is limited to ${mode} photos.`);
+    }
+
+    let processedCount = 0;
+    filesToProcess.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setCaptured((list) => [...list, event.target.result]);
+        processedCount++;
+        if (processedCount === filesToProcess.length && onCapture) {
+          onCapture();
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const delay = (ms) => new Promise((r) => window.setTimeout(r, ms));
 
   const runSingleCapture = async () => {
@@ -464,7 +514,13 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, s
           <>
             <button className="shutter-large burst-button" onClick={() => runSequentialCapture(mode)}><Zap size={22} /> Burst Mode</button>
             <button className="shutter-large" onClick={runSingleCapture}><Camera size={24} /> Capture Shot</button>
-            <button className="pill-button" onClick={() => setCaptured([])}> Clear roll</button>
+            <div className="secondary-actions" style={{ display: 'flex', gap: '8px' }}>
+              <button className="pill-button" onClick={() => setCaptured([])}>Clear roll</button>
+              <button className="pill-button import-btn" onClick={() => document.getElementById('booth-file-upload').click()}>
+                <Upload size={16} /> Import
+              </button>
+              <input type="file" id="booth-file-upload" hidden multiple accept="image/*" onChange={handleFileUpload} />
+            </div>
           </>
         ) : (
           <button className="shutter-large stop-button" onClick={stopBurst}><Pause size={22} /> Stop</button>
@@ -1450,3 +1506,82 @@ function drawCover(ctx, image, x, y, width, height, zoom = 1) {
 }
 
 createRoot(document.getElementById('root')).render(<App />);
+function FeedbackOverlay({ onClose, ownerEmail }) {
+  const [status, setStatus] = useState('idle'); // idle, sending, success
+  const [msg, setMsg] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!msg.trim()) return;
+    
+    setStatus('sending');
+    
+    try {
+      const response = await fetch('https://formspree.io/f/mpqbybgq', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: msg,
+          _subject: 'New Feedback from Memory Lab',
+          email: 'feedback-bot@memorie.lab' // Optional: Placeholder for sender email
+        })
+      });
+
+      if (response.ok) {
+        setStatus('success');
+        setTimeout(onClose, 2500);
+      } else {
+        throw new Error('Failed to send');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Oops! Something went wrong. Please try again.');
+      setStatus('idle');
+    }
+  };
+
+  return (
+    <motion.div className="feedback-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <div className="feedback-backdrop" onClick={onClose} />
+      <motion.div 
+        className="feedback-card"
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+      >
+        <button className="close-feedback" onClick={onClose}>&times;</button>
+        
+        {status === 'success' ? (
+          <div className="feedback-success">
+            <div className="success-icon">✦</div>
+            <h3>Feedback Sent!</h3>
+            <p>Sent to {ownerEmail}</p>
+          </div>
+        ) : (
+          <>
+            <div className="feedback-header">
+              <MessageSquare size={24} />
+              <h2>Share Your Thoughts</h2>
+            </div>
+            <p>Your feedback helps us make the <strong>Memory Lab</strong> even better.</p>
+            
+            <form onSubmit={handleSubmit}>
+              <textarea 
+                autoFocus
+                placeholder="Type your feedback here..." 
+                value={msg}
+                onChange={(e) => setMsg(e.target.value)}
+                disabled={status === 'sending'}
+              />
+              <button type="submit" className="submit-btn" disabled={status === 'sending' || !msg.trim()}>
+                {status === 'sending' ? 'Sending...' : 'Send Feedback'}
+              </button>
+            </form>
+          </>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
