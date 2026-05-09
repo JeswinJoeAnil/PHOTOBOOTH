@@ -1478,19 +1478,24 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
   ctx.fillStyle = frame.id === 'doodle' ? '#f5f0e7' : '#252525';
   ctx.fillText('PM 04:23  MAY. 23 2004', baseW - 390, baseH - 54);
 
+  const canvasScale = baseW / 380;
+
   if (decorations) {
     for (const deco of decorations) {
+      const baseFontSize = (deco.isSmall ? 10 : 13) * canvasScale;
+      const fontSize = baseFontSize * deco.scale;
+
       if (deco.type === 'text') {
         ctx.save();
         ctx.translate((deco.x / 100) * baseW, (deco.y / 100) * baseH);
         ctx.rotate((deco.rotation * Math.PI) / 180);
 
-        ctx.font = `900 ${28 * deco.scale}px ${deco.font || 'Inter'}, sans-serif`;
+        ctx.font = `900 ${fontSize}px ${deco.font || 'Inter'}, sans-serif`;
         if (deco.showBg !== false) {
           ctx.fillStyle = deco.bgColor || '#ff5aaf';
           const textWidth = ctx.measureText(deco.content).width;
-          const h = (28 * deco.scale) * 1.5;
-          const w = textWidth + h;
+          const h = fontSize * 1.5;
+          const w = textWidth + (fontSize * 1.2);
           ctx.beginPath();
           ctx.roundRect(-w / 2, -h / 2, w, h, h / 2);
           ctx.fill();
@@ -1507,22 +1512,24 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
         ctx.rotate((deco.rotation * Math.PI) / 180);
         if (deco.isImage) {
           const sImg = await loadImage(asset(deco.content));
-          const w = 100 * deco.scale;
+          const w = 100 * deco.scale * canvasScale;
           const h = (sImg.height / sImg.width) * w;
           if (deco.showBg !== false) {
             ctx.fillStyle = deco.bgColor || '#ff5aaf';
+            const bgPadding = 12 * deco.scale * canvasScale;
             ctx.beginPath();
-            ctx.roundRect(-w / 2 - 12 * deco.scale, -h / 2 - 12 * deco.scale, w + 24 * deco.scale, h + 24 * deco.scale, 12 * deco.scale);
+            ctx.roundRect(-w / 2 - bgPadding, -h / 2 - bgPadding, w + bgPadding * 2, h + bgPadding * 2, bgPadding);
             ctx.fill();
           }
           ctx.drawImage(sImg, -w / 2, -h / 2, w, h);
         } else {
-          ctx.font = `900 ${28 * deco.scale}px Fraunces, serif`;
+          const bubbleFontSize = fontSize;
+          ctx.font = `900 ${bubbleFontSize}px Fraunces, serif`;
           if (deco.showBg !== false) {
             ctx.fillStyle = deco.bgColor || '#ff5aaf';
             const textWidth = ctx.measureText(deco.content).width;
-            const h = (28 * deco.scale) * 1.5;
-            const w = textWidth + h;
+            const h = bubbleFontSize * 1.5;
+            const w = textWidth + (bubbleFontSize * 1.2);
             ctx.beginPath();
             ctx.roundRect(-w / 2, -h / 2, w, h, h / 2);
             ctx.fill();
