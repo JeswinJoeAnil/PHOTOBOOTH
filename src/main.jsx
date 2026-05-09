@@ -15,14 +15,17 @@ import {
   Image as ImageIcon,
   Menu,
   Mic2,
+  Minus,
   MousePointer2,
   Move,
   Pause,
   Play,
+  Plus,
   RefreshCcw,
   RotateCw,
   Sparkles,
   Sticker,
+  Trash2,
   Type,
   Video,
   Wand2,
@@ -50,7 +53,11 @@ const ASSETS = {
   previewWarm: asset('warm vintag3.jpg'),
   previewSilver: asset('cool silver.jpg'),
   previewPolaroid: asset('faded polaroid.jpg'),
-  bgMusic: 'https://assets.mixkit.co/music/preview/mixkit-lofi-night-walk-102.mp3',
+  playlist: [
+    asset('im in love.mp3'),
+    asset('midnight pretenders.mp3'),
+    asset('plastic love.mp3'),
+  ],
   shutter: 'https://www.soundjay.com/mechanical/camera-shutter-click-01.mp3',
 };
 
@@ -94,21 +101,25 @@ function App() {
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [frame, setFrame] = useState(frames[0]);
   const [audioOn, setAudioOn] = useState(false);
+  const [trackIndex, setTrackIndex] = useState(0);
   const audioRef = useRef(null);
 
   useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio(ASSETS.bgMusic);
-      audioRef.current.loop = true;
-      audioRef.current.volume = 0.4;
-    }
-
+    if (!audioRef.current) return;
     if (audioOn) {
       audioRef.current.play().catch(e => console.log("Audio play blocked:", e));
     } else {
       audioRef.current.pause();
     }
-  }, [audioOn]);
+  }, [audioOn, trackIndex]);
+
+  const nextTrack = () => {
+    setTrackIndex((prev) => (prev + 1) % ASSETS.playlist.length);
+  };
+
+  const toggleAudio = () => {
+    setAudioOn(!audioOn);
+  };
 
   const playShutter = () => {
     if (!audioOn) return;
@@ -154,7 +165,13 @@ function App() {
   return (
     <main>
       <AmbientLayers />
-      <Header audioOn={audioOn} setAudioOn={setAudioOn} />
+      <Header audioOn={audioOn} toggleAudio={toggleAudio} nextTrack={nextTrack} />
+      <audio
+        ref={audioRef}
+        src={ASSETS.playlist[trackIndex]}
+        onEnded={nextTrack}
+        crossOrigin="anonymous"
+      />
       <Hero
         onStart={() => {
           setBoothOpen(true);
@@ -213,7 +230,7 @@ function App() {
   );
 }
 
-function Header({ audioOn, setAudioOn }) {
+function Header({ audioOn, toggleAudio, nextTrack }) {
   return (
     <motion.header className="site-header" initial={{ y: -36, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 90, damping: 14 }}>
       <a className="brand" href="#top">memorie<span>+</span></a>
@@ -224,11 +241,18 @@ function Header({ audioOn, setAudioOn }) {
         <a href="#export">Export</a>
       </nav>
       <div className="header-actions">
-        <button className="pill-button audio-toggle" onClick={() => setAudioOn((value) => !value)} aria-pressed={audioOn}>
-          <CassetteTape size={16} />
-          {audioOn ? 'Sound On' : 'Sound Off'}
-          <Sparkles size={14} />
-        </button>
+        <div className="audio-controls-group">
+          <button className="pill-button audio-toggle" onClick={toggleAudio} aria-pressed={audioOn}>
+            <CassetteTape size={16} />
+            {audioOn ? 'Sound On' : 'Sound Off'}
+            <Sparkles size={14} />
+          </button>
+          {audioOn && (
+            <button className="icon-button skip-button" onClick={nextTrack} title="Next track">
+              <RefreshCcw size={16} />
+            </button>
+          )}
+        </div>
         <button className="icon-button" aria-label="Open menu"><Menu size={20} /></button>
       </div>
     </motion.header>
@@ -767,31 +791,65 @@ function MemoryLab(props) {
 }
 
 function PhotoResult({ frame, photos, filter, accent, decorations, setDecorations, activeDecoId, setActiveDecoId, doodlePaths, setDoodlePaths, doodleBrush, stripTab, zoom, rotation, vignette }) {
+  const wrapperRef = useRef(null);
+  const stripRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    if (!wrapperRef.current || !stripRef.current) return;
+    const compute = () => {
+      const wW = wrapperRef.current.clientWidth  - 32; // 16px padding each side
+      const wH = wrapperRef.current.clientHeight - 32;
+      const sW = stripRef.current.offsetWidth;
+      const sH = stripRef.current.offsetHeight;
+      if (!sW || !sH) return;
+      const s = Math.min(wW / sW, wH / sH, 1); // never upscale
+      setScale(s);
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(wrapperRef.current);
+    ro.observe(stripRef.current);
+    return () => ro.disconnect();
+  }, [photos.length, frame.id]);
+
   return (
-    <div
-      className={`photo-result frame-${frame.id}`}
-      style={{ '--accent': accent, '--vignette': `${vignette / 100}` }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) setActiveDecoId(null);
-      }}
-    >
-      <div className="result-meta">PM 04:23 / MAY. 23 2004</div>
-      <div className="photo-slots" onClick={() => setActiveDecoId(null)}>
-        {photos.map((photo, index) => (
-          <DraggablePhoto key={`${photo}-${index}`} photo={photo} filter={filter} index={index} zoom={zoom} rotation={rotation} />
-        ))}
-      </div>
+    <div ref={wrapperRef} className="strip-scale-wrapper">
+      <div
+        ref={stripRef}
+        className={`photo-result frame-${frame.id}`}
+        style={{
+          '--accent': accent,
+          '--vignette': `${vignette / 100}`,
+          transform: `scale(${scale}) rotate(-1.5deg)`,
+          transformOrigin: 'top center',
+          // collapse the dead space below the scaled strip
+          marginBottom: scale < 1
+            ? `${-((stripRef.current?.offsetHeight ?? 0) * (1 - scale))}px`
+            : '0px',
+        }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setActiveDecoId(null);
+        }}
+      >
+        <div className="result-meta">PM 04:23 / MAY. 23 2004</div>
+        <div className="photo-slots" onClick={() => setActiveDecoId(null)}>
+          {photos.map((photo, index) => (
+            <DraggablePhoto key={`${photo}-${index}`} photo={photo} filter={filter} index={index} zoom={zoom} rotation={rotation} />
+          ))}
+        </div>
 
-      <DoodleCanvas stripTab={stripTab} doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths} doodleBrush={doodleBrush} />
+        <DoodleCanvas stripTab={stripTab} doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths} doodleBrush={doodleBrush} />
 
-      <div className="decorations-layer" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 10 }}>
-        {decorations.map(deco => (
-          <DraggableDeco key={`${deco.id}-${deco.dragKey || 0}`} deco={deco} setDecorations={setDecorations} isActive={activeDecoId === deco.id} onPointerDown={() => setActiveDecoId(deco.id)} />
-        ))}
+        <div className="decorations-layer" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 10 }}>
+          {decorations.map(deco => (
+            <DraggableDeco key={`${deco.id}-${deco.dragKey || 0}`} deco={deco} setDecorations={setDecorations} isActive={activeDecoId === deco.id} onPointerDown={() => setActiveDecoId(deco.id)} />
+          ))}
+        </div>
+        <div className="tape tape-a" />
+        <div className="tape tape-b" />
+        <div className="result-doodles">✧ ⋆ ˚｡⋆୨୧˚</div>
       </div>
-      <div className="tape tape-a" />
-      <div className="tape tape-b" />
-      <div className="result-doodles">✧ ⋆ ˚｡⋆୨୧˚</div>
     </div>
   );
 }
@@ -853,6 +911,87 @@ function DraggablePhoto({ photo, filter, index, zoom, rotation }) {
   );
 }
 
+function DecoHandles({ deco, setDecorations, elementRef }) {
+  const handleResize = (e) => {
+    e.stopPropagation();
+    const target = e.currentTarget;
+    target.setPointerCapture(e.pointerId);
+    
+    const rect = elementRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const startDist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+    const startScale = deco.scale;
+    
+    const onMove = (moveEvent) => {
+       const currentDist = Math.hypot(moveEvent.clientX - centerX, moveEvent.clientY - centerY);
+       const ratio = currentDist / startDist;
+       const newScale = Math.max(0.2, startScale * ratio);
+       setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scale: newScale } : d));
+    };
+    const onUp = (upEvent) => {
+      target.releasePointerCapture(upEvent.pointerId);
+      target.removeEventListener('pointermove', onMove);
+      target.removeEventListener('pointerup', onUp);
+    };
+    target.addEventListener('pointermove', onMove);
+    target.addEventListener('pointerup', onUp);
+  };
+
+  const handleRotate = (e) => {
+    e.stopPropagation();
+    const target = e.currentTarget;
+    target.setPointerCapture(e.pointerId);
+    
+    const rect = elementRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+    const startRotation = deco.rotation || 0;
+    
+    const onMove = (moveEvent) => {
+       const currentAngle = Math.atan2(moveEvent.clientY - centerY, moveEvent.clientX - centerX) * (180 / Math.PI);
+       let delta = currentAngle - startAngle;
+       if (delta > 180) delta -= 360;
+       if (delta < -180) delta += 360;
+       setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, rotation: startRotation + delta } : d));
+    };
+    const onUp = (upEvent) => {
+      target.releasePointerCapture(upEvent.pointerId);
+      target.removeEventListener('pointermove', onMove);
+      target.removeEventListener('pointerup', onUp);
+    };
+    target.addEventListener('pointermove', onMove);
+    target.addEventListener('pointerup', onUp);
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    setDecorations(prev => prev.filter(d => d.id !== deco.id));
+  };
+
+  return (
+    <>
+      {/* ── Functional handles ── */}
+      <div className="deco-handle delete-handle" data-tip="Remove" onPointerDown={handleDelete}>
+        <Trash2 size={11} />
+      </div>
+      <div className="deco-handle rotate-handle" data-tip="Rotate" onPointerDown={handleRotate}>
+        <RotateCw size={13} />
+      </div>
+      <div className="deco-handle resize-handle" data-tip="Resize" onPointerDown={handleResize}>
+        <Sparkles size={13} />
+      </div>
+
+      {/* ── Corner dots ── */}
+      <div className="deco-corner top-left" />
+      <div className="deco-corner top-right" />
+      <div className="deco-corner bottom-left" />
+      <div className="deco-corner bottom-right" />
+    </>
+  );
+}
+
 function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
   const elementRef = useRef(null);
   const handleDragEnd = () => {
@@ -905,6 +1044,7 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
         whileDrag={{ scale: deco.scale * 1.05 }}
       >
         {deco.content}
+        {isActive && <DecoHandles deco={deco} setDecorations={setDecorations} elementRef={elementRef} />}
       </motion.div>
     );
   } else {
@@ -921,6 +1061,7 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
         whileDrag={{ scale: deco.scale * 1.05 }}
       >
         {deco.isImage ? <img src={asset(deco.content)} alt="" style={{ width: 100, display: 'block', pointerEvents: 'none' }} /> : deco.content}
+        {isActive && <DecoHandles deco={deco} setDecorations={setDecorations} elementRef={elementRef} />}
       </motion.div>
     );
   }
@@ -1048,7 +1189,17 @@ function Footer() {
 
 async function renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette }) {
   const baseW = 900;
-  const baseH = frame.id === 'magazine' ? 1100 : 1500;
+  const columns = frame.id === 'magazine' ? 2 : 1;
+  const gap = 36;
+  const margin = 80;
+  
+  const slotW = columns === 2 ? (baseW - margin * 2 - gap) / 2 : baseW - margin * 2;
+  // Use a 4:3 aspect ratio for traditional landscape photobooth photos
+  const slotH = frame.id === 'magazine' ? 310 : slotW * 0.75; 
+  
+  const baseH = frame.id === 'magazine' 
+    ? 1100 
+    : 260 + gap * (photos.length - 1) + slotH * photos.length;
 
   // Calculate bounds including photostrip (0,0 to baseW,baseH) and all decorations
   let minX = 0;
@@ -1081,10 +1232,6 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
   canvas.height = maxY - minY;
   const ctx = canvas.getContext('2d');
 
-  // We are drawing on a transparent canvas by default, 
-  // but if the user wants the "scrapbook" background to be filled, we could fill it.
-  // For now, let's keep it transparent for flexibility.
-
   ctx.save();
   ctx.translate(-minX, -minY);
 
@@ -1102,12 +1249,6 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
   ctx.globalAlpha = 0.22;
   ctx.fillRect(0, 0, baseW, 70);
   ctx.globalAlpha = 1;
-
-  const columns = frame.id === 'magazine' ? 2 : 1;
-  const gap = 36;
-  const margin = 80;
-  const slotW = columns === 2 ? (baseW - margin * 2 - gap) / 2 : baseW - margin * 2;
-  const slotH = frame.id === 'magazine' ? 310 : (baseH - 260 - gap * (photos.length - 1)) / photos.length;
 
   for (let index = 0; index < photos.length; index += 1) {
     const img = await loadImage(photos[index]);

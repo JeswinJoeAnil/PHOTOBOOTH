@@ -190,7 +190,34 @@ main {
 .header-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
+}
+
+.audio-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 3px;
+  border-radius: 99px;
+}
+
+.skip-button {
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  background: white !important;
+  border-radius: 50% !important;
+  color: var(--hot) !important;
+  animation: skipPulse 2s infinite ease-in-out;
+}
+
+@keyframes skipPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
 
 .pill-button,
@@ -1020,9 +1047,8 @@ main {
 
 .result-wrap {
   grid-area: result;
-  min-height: 480px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: stretch;
   border-radius: 22px;
   overflow: hidden;
   background:
@@ -1030,7 +1056,23 @@ main {
     radial-gradient(circle at 86% 16%, rgba(216, 200, 255, .26), transparent 20rem),
     linear-gradient(135deg, #15100f, #080808 70%);
   box-shadow: var(--shadow-soft);
+  /* Match the strip-editor height so both panels are aligned */
+  min-height: min(82vh, 820px);
+  max-height: min(90vh, 900px);
 }
+
+/* Container that does the CSS scale-to-fit trick */
+.strip-scale-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
+  padding: 20px 16px;
+  /* Extra bottom pad accounts for scale collapse */
+  padding-bottom: 24px;
+}
+
 
 .strip-editor {
   grid-area: strip-edit;
@@ -1113,15 +1155,17 @@ main {
   --accent: var(--hot);
   --vignette: .16;
   position: relative;
-  width: min(88vw, 420px);
-  min-height: 650px;
-  padding: 54px 28px 88px;
+  /* Fixed natural width — JS scales this down to fit the viewport */
+  width: 380px;
+  padding: 54px 26px 80px;
   border-radius: 18px;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--accent), white 70%), #fff7ef),
     repeating-linear-gradient(0deg, rgba(0, 0, 0, .035) 0 1px, transparent 1px 16px);
   box-shadow: 0 32px 80px rgba(0, 0, 0, .36);
-  transform: rotate(-2deg);
+  /* No rotate here — handled by inline style via JS */
+  overflow: visible;
+  flex-shrink: 0;
 }
 
 .photo-result::before {
@@ -1147,24 +1191,27 @@ main {
 
 .photo-slots {
   display: grid;
-  gap: 16px;
+  gap: 10px;
+  /* Each slot is a fixed height so the strip has a predictable natural height */
+  /* 328px (inner width) * 0.75 (4:3 aspect ratio) = 246px */
+  grid-auto-rows: 246px;
 }
 
 .photo-slot {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 4 / 3;
-  padding: 8px;
+  height: 246px;
+  padding: 6px;
   border-radius: 12px;
   background: #fffaf5;
-  box-shadow: 0 12px 24px rgba(40, 28, 20, .18);
+  box-shadow: 0 8px 18px rgba(40, 28, 20, .15);
   touch-action: none;
 }
 
 .photo-slot img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   border-radius: 8px;
   transition: filter .22s ease, transform .22s ease;
   background: #000;
@@ -1209,10 +1256,161 @@ main {
   background: linear-gradient(135deg, #fff, #b8b8b8, #fff);
 }
 
-.active-deco {
-  outline: 2px dashed var(--accent);
-  outline-offset: 4px;
+/* ── Active deco selection ring ─────── */
+@keyframes dash-spin {
+  to { stroke-dashoffset: -20; }
 }
+@keyframes handle-pop {
+  0%   { opacity: 0; transform: scale(0.4); }
+  70%  { transform: scale(1.12); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.active-deco {
+  outline: none;
+  box-shadow:
+    0 0 0 1.5px rgba(255,255,255,0.85),
+    0 0 0 3px rgba(200,160,255,0.55),
+    0 0 22px 4px rgba(220,150,255,0.35);
+}
+
+/* ── Interactive Bounding Box Handles ─────── */
+.deco-handle {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.9);
+  pointer-events: auto;
+  z-index: 40;
+  animation: handle-pop 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.15s ease,
+              filter 0.15s ease;
+  user-select: none;
+}
+
+/* Tooltip via data-tip */
+.deco-handle[data-tip] {
+  --tip-opacity: 0;
+}
+.deco-handle[data-tip]::before {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30,20,50,0.88);
+  backdrop-filter: blur(8px);
+  color: #f0e8ff;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 99px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  border: 1px solid rgba(200,160,255,0.3);
+}
+.deco-handle[data-tip]:hover::before {
+  opacity: 1;
+}
+
+.deco-handle:active {
+  transform: scale(0.9) !important;
+}
+
+/* ── Rotate handle (top-center) ── */
+.rotate-handle {
+  top: -38px;
+  left: 50%;
+  translate: -50% 0;
+  width: 30px;
+  height: 30px;
+  cursor: grab;
+  background: linear-gradient(145deg, #c89eff, #9b6eff);
+  box-shadow: 0 4px 14px rgba(160,100,255,0.55), 0 0 0 2px rgba(255,255,255,0.8);
+  color: #fff;
+  animation-delay: 0.04s;
+}
+.rotate-handle:active {
+  cursor: grabbing;
+}
+.rotate-handle:hover {
+  transform: scale(1.18) rotate(-15deg);
+  box-shadow: 0 6px 20px rgba(160,100,255,0.75), 0 0 0 2px #fff;
+  filter: brightness(1.1);
+}
+/* connector line */
+.rotate-handle::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  translate: -50% 0;
+  width: 2px;
+  height: 18px;
+  background: linear-gradient(to bottom, rgba(200,158,255,0.9), rgba(200,158,255,0.1));
+  border-radius: 2px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ── Resize handle (bottom-right) ── */
+.resize-handle {
+  bottom: -16px;
+  right: -16px;
+  width: 32px;
+  height: 32px;
+  cursor: nwse-resize;
+  background: linear-gradient(145deg, #ffb3d9, #ff6eb4);
+  box-shadow: 0 4px 14px rgba(255,100,180,0.55), 0 0 0 2px rgba(255,255,255,0.8);
+  color: #fff;
+  animation-delay: 0.08s;
+}
+.resize-handle:hover {
+  transform: scale(1.18);
+  box-shadow: 0 6px 20px rgba(255,100,180,0.75), 0 0 0 2px #fff;
+  filter: brightness(1.1);
+}
+
+/* ── Delete handle (top-right) ── */
+.delete-handle {
+  top: -16px;
+  right: -16px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  background: linear-gradient(145deg, #ff9090, #ff4545);
+  box-shadow: 0 4px 12px rgba(255,60,60,0.5), 0 0 0 2px rgba(255,255,255,0.8);
+  color: #fff;
+  animation-delay: 0s;
+}
+.delete-handle:hover {
+  transform: scale(1.22) rotate(8deg);
+  box-shadow: 0 6px 18px rgba(255,60,60,0.75), 0 0 0 2px #fff;
+  filter: brightness(1.12);
+}
+
+/* ── Corner dots ── */
+.deco-corner {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, #fff 60%, rgba(200,158,255,0.6) 100%);
+  border-radius: 50%;
+  border: 1.5px solid rgba(200,160,255,0.7);
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(200,158,255,0.8), 0 0 4px rgba(255,255,255,0.9);
+  animation: handle-pop 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.deco-corner.top-left    { top: -4px;    left: -4px; animation-delay: 0.02s; }
+.deco-corner.top-right   { top: -4px;    right: -4px; animation-delay: 0.05s; }
+.deco-corner.bottom-left { bottom: -4px; left: -4px; animation-delay: 0.07s; }
+.deco-corner.bottom-right { bottom: -4px; right: -4px; animation-delay: 0.09s; }
 
 .tape-a {
   left: 12px;
@@ -1243,8 +1441,8 @@ main {
 .frame-chrome.photo-result,
 .frame-camera.photo-result {
   width: min(92vw, 620px);
-  min-height: 470px;
-  padding: 70px 92px 70px 42px;
+  min-height: 400px;
+  padding: 50px 60px 50px 36px;
   border-radius: 46px;
   transform: rotate(1deg);
   background:
@@ -1260,16 +1458,16 @@ main {
 
 .frame-chrome .photo-slot,
 .frame-camera .photo-slot {
-  height: 150px;
-  border: 8px solid #151515;
+  height: 246px; /* Match standard 4:3 */
+  border: 6px solid #151515;
   padding: 0;
-  border-radius: 18px;
+  border-radius: 14px;
 }
 
 .frame-magazine.photo-result {
-  width: min(92vw, 590px);
-  min-height: 760px;
-  transform: rotate(0deg);
+  width: 590px;
+  /* scale logic handles height/transform */
+  transform: none;
   background: #fffaf2;
 }
 
@@ -1278,7 +1476,7 @@ main {
 }
 
 .frame-magazine .photo-slot {
-  height: 225px;
+  height: 232px;
 }
 
 .frame-doodle.photo-result {
@@ -1779,20 +1977,20 @@ main {
 
   .photo-result {
     width: min(92vw, 350px);
-    min-height: 560px;
-    padding: 46px 22px 76px;
+    min-height: 420px;
+    padding: 46px 22px 70px;
   }
 
   .photo-slot {
-    height: 110px;
+    min-height: 70px;
   }
 
   .frame-chrome.photo-result,
   .frame-camera.photo-result,
   .frame-magazine.photo-result {
     width: min(92vw, 360px);
-    min-height: 580px;
-    padding: 54px 22px 82px;
+    min-height: 400px;
+    padding: 46px 22px 70px;
   }
 
   .frame-chrome .photo-slots,
@@ -1804,7 +2002,7 @@ main {
   .frame-chrome .photo-slot,
   .frame-camera .photo-slot,
   .frame-magazine .photo-slot {
-    height: 108px;
+    min-height: 70px;
   }
 
   .paper-note {
@@ -2184,12 +2382,12 @@ main {
 
   .photo-result {
     width: min(90vw, 360px);
-    min-height: 500px;
+    min-height: 380px;
     padding: 40px 20px 60px;
   }
 
   .photo-slot {
-    height: 110px;
+    min-height: 70px;
   }
 
   .capture-layout {
@@ -2250,7 +2448,7 @@ main {
 
   .photo-result {
     width: min(92vw, 320px);
-    min-height: 440px;
+    min-height: 360px;
     padding: 34px 16px 50px;
     transform: none;
   }
