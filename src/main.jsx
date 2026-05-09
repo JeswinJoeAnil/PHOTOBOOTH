@@ -50,6 +50,8 @@ const ASSETS = {
   previewWarm: asset('warm vintag3.jpg'),
   previewSilver: asset('cool silver.jpg'),
   previewPolaroid: asset('faded polaroid.jpg'),
+  bgMusic: 'https://assets.mixkit.co/music/preview/mixkit-lofi-night-walk-102.mp3',
+  shutter: 'https://www.soundjay.com/mechanical/camera-shutter-click-01.mp3',
 };
 
 const assetPhotos = [
@@ -92,6 +94,29 @@ function App() {
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [frame, setFrame] = useState(frames[0]);
   const [audioOn, setAudioOn] = useState(false);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(ASSETS.bgMusic);
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.4;
+    }
+
+    if (audioOn) {
+      audioRef.current.play().catch(e => console.log("Audio play blocked:", e));
+    } else {
+      audioRef.current.pause();
+    }
+  }, [audioOn]);
+
+  const playShutter = () => {
+    if (!audioOn) return;
+    const s = new Audio(ASSETS.shutter);
+    s.volume = 0.6;
+    s.play().catch(e => console.log(e));
+  };
+
   const [developing, setDeveloping] = useState(null);
   const [flashOn, setFlashOn] = useState(true);
   const [flashFire, setFlashFire] = useState(false);
@@ -153,6 +178,7 @@ function App() {
           setFlashFire={setFlashFire}
           mirrorOn={mirrorOn}
           setMirrorOn={setMirrorOn}
+          onCapture={playShutter}
         />
         <CameraEditor
           activeFilter={activeFilter}
@@ -265,7 +291,7 @@ function Hero({ onStart, photos, filter }) {
   );
 }
 
-function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, setCaptured, flashOn, setFlashOn, flashFire, setFlashFire, mirrorOn, setMirrorOn }) {
+function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, setCaptured, flashOn, setFlashOn, flashFire, setFlashFire, mirrorOn, setMirrorOn, onCapture }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [streaming, setStreaming] = useState(false);
@@ -315,6 +341,7 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, s
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     context.restore();
     fireFlash();
+    if (onCapture) onCapture();
     return [...currentCaptured, canvas.toDataURL('image/png')];
   };
 
