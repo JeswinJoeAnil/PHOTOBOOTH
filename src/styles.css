@@ -563,7 +563,7 @@ main {
   top: 24px;
   left: 26px;
   color: #ff3f28;
-  font-size: clamp(18px, 2vw, 30px);
+  font-size: clamp(14px, 1.5vw, 22px);
 }
 
 .timer {
@@ -584,7 +584,7 @@ main {
 .timestamp {
   left: 26px;
   bottom: 26px;
-  font-size: clamp(16px, 1.8vw, 27px);
+  font-size: clamp(12px, 1.4vw, 18px);
   line-height: 1.1;
 }
 
