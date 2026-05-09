@@ -10,12 +10,13 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.4",
-    "vite": "^7.1.10",
-    "typescript": "^5.9.3",
+    "framer-motion": "^12.23.24",
+    "lucide-react": "^0.468.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "framer-motion": "^12.23.24",
-    "lucide-react": "^0.468.0"
+    "three": "^0.184.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.10"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",

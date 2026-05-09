@@ -32,6 +32,7 @@ import {
   Zap,
 } from 'lucide-react';
 import './styles.css';
+import FooterWebGL from './FooterWebGL';
 
 const asset = (name) => new URL(`../assets/${name}`, import.meta.url).href;
 
@@ -1191,21 +1192,41 @@ function AmbientLayers() {
 }
 
 function Footer() {
+  const [freeze, setFreeze] = useState(false);
+
   return (
     <footer className="site-footer">
-      <div>
+      <FooterWebGL freeze={freeze} />
+      <div style={{ position: 'relative', zIndex: 2 }}>
         <strong>About Memorie</strong>
         <p>Every session becomes a small artifact: camera glow, paper texture, chrome charm, timestamp, memory.</p>
+        <button 
+          onClick={() => setFreeze(!freeze)} 
+          type="button"
+          style={{
+            marginTop: '10px',
+            background: freeze ? 'rgba(255,255,255,0.2)' : 'var(--vibe)',
+            color: freeze ? '#fff' : 'var(--ink)',
+            border: '1px solid rgba(255,255,255,0.3)',
+            borderRadius: '999px',
+            padding: '4px 12px',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+        >
+          {freeze ? 'UNFREEZE FLOWERS' : 'FREEZE FLOWERS'}
+        </button>
       </div>
-      <div className="footer-stickers">
+      <div className="footer-stickers" style={{ position: 'relative', zIndex: 2, pointerEvents: 'none' }}>
         <img src={asset('sticker2_34.png')} alt="" className="f-sticker a" />
         <img src={asset('stickers3_35.png')} alt="" className="f-sticker b" />
-        <span className="f-typo">Sweetest Memories</span>
+        <span className="f-typo" style={{ pointerEvents: 'none' }}>Sweetest Memories</span>
         <img src={asset('sticker4_19.png')} alt="" className="f-sticker c" />
         <img src={asset('stickers3_14.png')} alt="" className="f-sticker d" />
         <img src={asset('sticker2_2.png')} alt="" className="f-sticker e" />
       </div>
-      <form>
+      <form style={{ position: 'relative', zIndex: 2 }}>
         <label htmlFor="email">Stay in the loop</label>
         <div>
           <input id="email" placeholder="you@email.com" />
