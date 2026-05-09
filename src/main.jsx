@@ -168,7 +168,7 @@ function App() {
         />
       </section>
       <TemplateRail frame={frame} setFrame={setFrame} photos={stripPhotos} filter={selectedFilter} accent={accent} />
-      <section id="memory" className="studio-grid">
+      <section id="memory">
         <MemoryLab
           frame={frame} photos={stripPhotos} filter={selectedFilter} accent={accent}
           decorations={decorations} setDecorations={setDecorations}
@@ -178,6 +178,7 @@ function App() {
           developing={developing} setDeveloping={setDeveloping}
           zoom={zoom} setZoom={setZoom} rotation={rotation} setRotation={setRotation} vignette={vignette}
           stripTab={stripTab} setStripTab={setStripTab} accentColor={accent} setAccentColor={setAccent}
+          captured={captured}
         />
       </section>
       <Footer />
@@ -342,6 +343,7 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, s
     setShotIndex(null);
     setShooting(false);
     shootingRef.current = false;
+    window.setTimeout(() => document.getElementById('memory-lab')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
   };
 
   const runSequentialCapture = async (totalShots) => {
@@ -367,6 +369,7 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, s
     setShotIndex(null);
     setShooting(false);
     shootingRef.current = false;
+    window.setTimeout(() => document.getElementById('memory-lab')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
   };
 
   const stopBurst = () => {
@@ -420,6 +423,7 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, s
           <button className="shutter-large stop-button" onClick={stopBurst}><Pause size={22} /> Stop</button>
         )}
       </div>
+      <a href="#templates" className="vibe-link"><Sparkles size={16} /> Choose Your Vibe</a>
       <canvas ref={canvasRef} hidden />
     </motion.section>
   );
@@ -652,7 +656,7 @@ function MemoryLab(props) {
     decorations, setDecorations, activeDecoId, setActiveDecoId,
     doodlePaths, setDoodlePaths, doodleBrush, setDoodleBrush,
     developing, setDeveloping, zoom, setZoom, rotation, setRotation, vignette,
-    stripTab, setStripTab, accentColor, setAccentColor,
+    stripTab, setStripTab, accentColor, setAccentColor, captured,
   } = props;
   const exportRef = useRef(null);
 
@@ -696,23 +700,40 @@ function MemoryLab(props) {
         setStripTab={setStripTab}
       />
 
-      <div id="export" className="export-panel">
-        <div className="paper-note">All set! <Sparkles size={16} /></div>
-        <p>Export your memory</p>
-        <div className="export-grid">
-          <button onClick={() => exportCanvas('png')}><ImageIcon size={18} /> Photo Strip <span>PNG</span><Download size={16} /></button>
-          <button onClick={() => exportCanvas('jpg')}><Grid2X2 size={18} /> Collage <span>JPG</span><Download size={16} /></button>
-          <button onClick={() => exportCanvas('gif')}><Film size={18} /> Animated GIF <span>GIF</span><Download size={16} /></button>
-          <button onClick={() => exportCanvas('mp4')}><Video size={18} /> Video Reel <span>MP4</span><Download size={16} /></button>
+      <div className="memory-sidebar">
+        <div id="export" className="export-panel">
+          <div className="paper-note">All set! <Sparkles size={16} /></div>
+          <p>Export your memory</p>
+          <div className="export-grid">
+            <button onClick={() => exportCanvas('png')}><ImageIcon size={18} /> Photo Strip <span>PNG</span><Download size={16} /></button>
+            <button onClick={() => exportCanvas('jpg')}><Grid2X2 size={18} /> Collage <span>JPG</span><Download size={16} /></button>
+            <button onClick={() => exportCanvas('gif')}><Film size={18} /> Animated GIF <span>GIF</span><Download size={16} /></button>
+            <button onClick={() => exportCanvas('mp4')}><Video size={18} /> Video Reel <span>MP4</span><Download size={16} /></button>
+          </div>
+          <div className="share-row">
+            <span>Share to</span>
+            <button>IG</button>
+            <button>TT</button>
+            <button>X</button>
+            <button>URL</button>
+          </div>
+          <AnimatePresence>{developing && <DevelopingOverlay type={developing} />}</AnimatePresence>
         </div>
-        <div className="share-row">
-          <span>Share to</span>
-          <button>IG</button>
-          <button>TT</button>
-          <button>X</button>
-          <button>URL</button>
+
+        <div className="memory-roll">
+          <div className="section-title"><Film size={16} /><span>Memory Roll</span></div>
+          <div className="roll-previews">
+            {captured && captured.slice(-4).reverse().map((img, i) => (
+              <div key={i} className="roll-item">
+                <img src={img} alt="" />
+                <button className="roll-dl"><Download size={12} /></button>
+              </div>
+            ))}
+            {(!captured || captured.length === 0) && (
+              <div className="roll-empty">Capture moments to fill your roll...</div>
+            )}
+          </div>
         </div>
-        <AnimatePresence>{developing && <DevelopingOverlay type={developing} />}</AnimatePresence>
       </div>
     </section>
   );
@@ -720,8 +741,8 @@ function MemoryLab(props) {
 
 function PhotoResult({ frame, photos, filter, accent, decorations, setDecorations, activeDecoId, setActiveDecoId, doodlePaths, setDoodlePaths, doodleBrush, stripTab, zoom, rotation, vignette }) {
   return (
-    <div 
-      className={`photo-result frame-${frame.id}`} 
+    <div
+      className={`photo-result frame-${frame.id}`}
       style={{ '--accent': accent, '--vignette': `${vignette / 100}` }}
       onClick={(e) => {
         if (e.target === e.currentTarget) setActiveDecoId(null);
@@ -813,18 +834,18 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
 
     const rect = elementRef.current.getBoundingClientRect();
     const parentRect = parent.getBoundingClientRect();
-    
+
     const centerX = rect.left + rect.width / 2 - parentRect.left;
     const centerY = rect.top + rect.height / 2 - parentRect.top;
-    
+
     const newX = (centerX / parentRect.width) * 100;
     const newY = (centerY / parentRect.height) * 100;
 
-    setDecorations(prev => prev.map(d => d.id === deco.id ? { 
-      ...d, 
-      x: newX, 
+    setDecorations(prev => prev.map(d => d.id === deco.id ? {
+      ...d,
+      x: newX,
       y: newY,
-      dragKey: (d.dragKey || 0) + 1 
+      dragKey: (d.dragKey || 0) + 1
     } : d));
   };
 
@@ -980,7 +1001,12 @@ function Footer() {
         <p>Every session becomes a small artifact: camera glow, paper texture, chrome charm, timestamp, memory.</p>
       </div>
       <div className="footer-stickers">
-        <span>📷</span><span>GOOD TIMES</span><span>CD</span><span>NO BAD DAYS</span><span>MEMORIES</span>
+        <img src={asset('sticker2_34.png')} alt="" className="f-sticker a" />
+        <img src={asset('stickers3_44.png')} alt="" className="f-sticker b" />
+        <span className="f-typo">Sweetest Memories</span>
+        <img src={asset('sticker4_8.png')} alt="" className="f-sticker c" />
+        <img src={asset('stickers3_14.png')} alt="" className="f-sticker d" />
+        <img src={asset('sticker2_24.png')} alt="" className="f-sticker e" />
       </div>
       <form>
         <label htmlFor="email">Stay in the loop</label>
