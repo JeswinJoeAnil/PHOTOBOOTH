@@ -1699,21 +1699,7 @@ main {
   font-size: 13px;
 }
 
-.footer-stickers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
-  align-items: center;
-  justify-content: center;
-  color: var(--hot);
-  font-family: Fraunces, Georgia, serif;
-  font-size: clamp(20px, 2vw, 36px);
-  font-weight: 900;
-}
 
-.footer-stickers span {
-  transform: rotate(-6deg);
-}
 
 .site-footer form {
   display: grid;
@@ -2158,12 +2144,10 @@ main {
   max-width: 280px;
 }
 
-.footer-stickers {
-  position: relative;
+.footer-center {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 220px;
 }
 
 .f-sticker {
@@ -2185,14 +2169,69 @@ main {
   animation-play-state: paused;
 }
 
-.f-sticker.a { height: 90px; top: 10px; left: 5%; --base-rot: -14deg; animation: floatSticker 4s ease-in-out infinite; }
-.f-sticker.b { height: 110px; top: 20px; right: 10%; --base-rot: 18deg; animation: floatSticker 5s ease-in-out infinite 0.5s; }
-.f-sticker.c { height: 100px; bottom: 20px; left: 25%; --base-rot: 8deg; animation: floatSticker 4.5s ease-in-out infinite 1s; }
-.f-sticker.d { height: 130px; bottom: 0; right: 25%; --base-rot: -6deg; animation: floatSticker 5.5s ease-in-out infinite 1.5s; }
-.f-sticker.e { height: 80px; top: 50px; left: 45%; --base-rot: -5deg; z-index: 2; animation: floatSticker 4.2s ease-in-out infinite 0.2s; }
+.f-sticker.corner-l { 
+  height: 120px; 
+  top: -20px; 
+  left: -20px; 
+  --base-rot: -15deg; 
+  animation: floatSticker 6s ease-in-out infinite; 
+  z-index: 1; /* Behind text, above flowers */
+  opacity: 0.8;
+}
+
+.f-sticker.corner-r { 
+  height: 140px; 
+  bottom: -15px; 
+  right: -20px; 
+  --base-rot: 20deg; 
+  animation: floatSticker 7s ease-in-out infinite 0.5s; 
+  z-index: 1; /* Behind text, above flowers */
+  opacity: 0.8;
+}
+
+.footer-freeze-btn {
+  margin-top: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.footer-freeze-btn:hover {
+  background: var(--hot);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 90, 175, 0.4);
+  border-color: transparent;
+}
+
+.f-hint {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: var(--hot);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.8;
+  animation: pulseHint 2s ease-in-out infinite;
+  text-shadow: 0 0 10px rgba(255, 90, 175, 0.5);
+  margin-top: 10px;
+}
+
+@keyframes pulseHint {
+  0%, 100% { opacity: 0.5; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1); }
+}
 
 .f-typo {
-  position: absolute;
+  position: relative;
   z-index: 5;
   font-family: 'UnifrakturMaguntia', cursive;
   font-size: 48px;
