@@ -64,7 +64,7 @@ video {
 main {
   position: relative;
   isolation: isolate;
-  padding: 20px;
+  padding: 8px;
 }
 
 .grain-layer,
@@ -154,9 +154,9 @@ main {
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 12px;
-  padding: 6px 16px;
+  padding: 4px 12px;
   border: 1px solid rgba(255, 255, 255, .6);
-  border-radius: 18px;
+  border-radius: 14px;
   background: linear-gradient(135deg, rgba(255, 250, 243, .85), rgba(232, 225, 215, .72));
   box-shadow: 0 12px 40px rgba(10, 8, 7, .12), inset 0 1px 0 rgba(255, 255, 255, .9);
   backdrop-filter: blur(25px);
@@ -455,8 +455,8 @@ main {
 
 .tape {
   position: absolute;
-  width: 94px;
-  height: 34px;
+  width: 52px;
+  height: 18px;
   background:
     linear-gradient(90deg, rgba(113, 91, 38, .42), rgba(231, 196, 100, .58), rgba(93, 76, 37, .35)),
     repeating-linear-gradient(45deg, transparent 0 7px, rgba(255, 255, 255, .22) 8px 12px);
@@ -829,17 +829,17 @@ main {
 
 .tool-tabs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-  gap: 12px;
-  margin: 23px 0 18px;
+  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+  gap: 8px;
+  margin: 12px 0 10px;
 }
 
 .tool-tabs button {
   display: grid;
   place-items: center;
-  gap: 6px;
-  min-height: 58px;
-  padding: 7px;
+  gap: 4px;
+  min-height: 44px;
+  padding: 4px;
   color: var(--ink);
   background: transparent;
   border-radius: 16px;
@@ -856,8 +856,8 @@ main {
 
 .filter-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
 }
 
 .filter-grid button {
@@ -955,12 +955,10 @@ main {
 }
 
 .template-rail {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(150px, 1fr));
-  gap: 18px;
+  display: flex;
+  gap: 10px;
   overflow-x: auto;
-  padding: 6px 4px 12px;
-  scroll-snap-type: x mandatory;
+  padding: 4px 0 10px;
 }
 
 .template-card {
@@ -1040,54 +1038,63 @@ main {
   background: #111;
 }
 
+.memory-lab-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  scroll-snap-align: start;
+}
+
 .memory-lab {
   display: grid;
   grid-template-areas: "result strip-edit sidebar";
-  grid-template-columns: minmax(360px, 1.2fr) minmax(320px, 1fr) minmax(300px, 1fr);
-  gap: 24px;
-  margin: 24px auto 0;
-  align-items: start;
-  max-width: 1400px;
+  grid-template-columns: minmax(300px, 1.2fr) minmax(280px, 1fr) minmax(260px, 0.8fr);
+  gap: 16px;
+  align-items: stretch;
+  max-width: 1300px;
   width: 100%;
+  height: calc(100vh - 120px);
 }
 
 .result-wrap {
   grid-area: result;
   display: flex;
   align-items: stretch;
-  border-radius: 22px;
+  border-radius: 18px;
   overflow: hidden;
   background:
     radial-gradient(circle at 12% 18%, rgba(255, 90, 175, .22), transparent 18rem),
     radial-gradient(circle at 86% 16%, rgba(216, 200, 255, .26), transparent 20rem),
     linear-gradient(135deg, #15100f, #080808 70%);
   box-shadow: var(--shadow-soft);
-  /* Match the strip-editor height so both panels are aligned */
-  min-height: min(82vh, 820px);
-  max-height: min(90vh, 900px);
+  height: 100%;
 }
 
 /* Container that does the CSS scale-to-fit trick */
 .strip-scale-wrapper {
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 20px 16px;
-  /* Extra bottom pad accounts for scale collapse */
-  padding-bottom: 24px;
+  padding: 12px;
 }
 
 
 .strip-editor {
   grid-area: strip-edit;
-  padding: 28px;
-  border-radius: 22px;
+  padding: 16px;
+  border-radius: 18px;
   background: linear-gradient(135deg, rgba(255, 255, 255, .8), rgba(246, 238, 231, .6));
   border: 1px solid rgba(255, 255, 255, .5);
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(12px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 
@@ -1101,9 +1108,9 @@ main {
 .export-grid button {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  border-radius: 16px;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
   background: #fff;
   border: 1px solid rgba(0, 0, 0, .08);
   box-shadow: var(--shadow-soft);
@@ -1161,14 +1168,14 @@ main {
   --accent: var(--hot);
   --vignette: .16;
   position: relative;
-  /* Fixed base width - JS scales this down to fit the viewport while preserving coordinate proportions */
-  width: 900px;
-  padding: 110px 80px 150px;
-  border-radius: 40px;
+  /* Narrow strip like a real photo booth — JS scales to fit */
+  width: 380px;
+  padding: 28px 16px 44px;
+  border-radius: 22px;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--accent), white 70%), #fff7ef),
     repeating-linear-gradient(0deg, rgba(0, 0, 0, .035) 0 1px, transparent 1px 16px);
-  box-shadow: 0 45px 100px rgba(0, 0, 0, .4);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .35);
   overflow: visible;
   flex-shrink: 0;
 }
@@ -1185,27 +1192,24 @@ main {
 
 .result-meta {
   position: absolute;
-  top: 36px;
-  left: 60px;
-  right: 60px;
+  top: 8px;
+  left: 16px;
+  right: 16px;
   font-family: Space Mono, monospace;
-  font-size: 24px;
+  font-size: 10px;
   font-weight: 700;
-  color: rgba(0, 0, 0, .66);
+  color: rgba(0, 0, 0, .46);
 }
 
 .photo-slots {
   display: grid;
-  gap: 10px;
-  /* Each slot is a fixed height so the strip has a predictable natural height */
-  /* 328px (inner width) * 0.75 (4:3 aspect ratio) = 246px */
-  grid-auto-rows: 246px;
+  gap: 8px;
 }
 
 .photo-slot {
   position: relative;
   width: 100%;
-  height: 629px; /* (900 - 160) * 0.85 */
+  aspect-ratio: 4 / 3;
   background: #111;
   overflow: hidden;
   border-radius: 4px;
@@ -1236,14 +1240,14 @@ main {
 .drag-sticker {
   position: absolute;
   z-index: 8;
-  padding: 9px 13px;
-  border-radius: 5px;
-  max-width: 190px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  max-width: 120px;
   color: #4e1534;
   background: rgba(255, 213, 226, .94);
   box-shadow: var(--shadow-soft);
   font-family: Fraunces, Georgia, serif;
-  font-size: 20px;
+  font-size: 13px;
   font-weight: 900;
   line-height: 1;
   touch-action: none;
@@ -1251,7 +1255,7 @@ main {
 }
 
 .drag-sticker.small {
-  font-size: 14px;
+  font-size: 10px;
   background: rgba(218, 255, 72, .88);
 }
 
@@ -1417,22 +1421,22 @@ main {
 .deco-corner.bottom-right { bottom: -4px; right: -4px; animation-delay: 0.09s; }
 
 .tape-a {
-  left: 12px;
-  top: 74px;
+  left: 4px;
+  top: 12px;
   transform: rotate(-18deg);
 }
 
 .tape-b {
-  right: 20px;
-  bottom: 72px;
+  right: 6px;
+  bottom: 18px;
   transform: rotate(12deg);
 }
 
 .result-doodles {
   position: absolute;
-  right: 18px;
-  top: 22px;
-  font-size: 20px;
+  right: 8px;
+  top: 8px;
+  font-size: 12px;
   color: var(--accent);
 }
 
@@ -1444,10 +1448,10 @@ main {
 
 .frame-chrome.photo-result,
 .frame-camera.photo-result {
-  width: 900px;
-  min-height: 400px;
-  padding: 50px 60px 50px 36px;
-  border-radius: 46px;
+  width: 520px;
+  min-height: 300px;
+  padding: 30px 24px 30px 20px;
+  border-radius: 28px;
   transform: rotate(1deg);
   background:
     radial-gradient(circle at 82% 50%, rgba(255, 255, 255, .75), transparent 110px),
@@ -1458,20 +1462,20 @@ main {
 .frame-chrome .photo-slots,
 .frame-camera .photo-slots {
   grid-template-columns: repeat(2, 1fr);
-  gap: 36px;
+  gap: 12px;
 }
 
 .frame-chrome .photo-slot,
 .frame-camera .photo-slot {
-  height: 299px; /* (900 - 160 - 36)/2 * 0.85 */
-  border: 10px solid #151515;
+  aspect-ratio: 4 / 3;
+  border: 6px solid #151515;
   padding: 0;
-  border-radius: 14px;
+  border-radius: 10px;
 }
 
 .frame-magazine.photo-result {
-  width: 900px;
-  padding: 110px 80px 150px;
+  width: 520px;
+  padding: 30px 24px 44px;
   background: #fffaf2;
 }
 
@@ -1480,7 +1484,7 @@ main {
 }
 
 .frame-magazine .photo-slot {
-  height: 299px;
+  aspect-ratio: 4 / 3;
 }
 
 .frame-doodle.photo-result {
@@ -1502,16 +1506,19 @@ main {
 .memory-sidebar {
   grid-area: sidebar;
   display: grid;
-  gap: 20px;
+  gap: 12px;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .export-panel {
   position: relative;
-  padding: clamp(20px, 2vw, 32px);
+  padding: 16px;
   display: grid;
   align-content: center;
-  gap: 14px;
-  border-radius: 20px;
+  gap: 10px;
+  border-radius: 18px;
   background:
     radial-gradient(circle at 10% 20%, rgba(255, 90, 175, .18), transparent 15rem),
     linear-gradient(135deg, rgba(218, 200, 255, .9), rgba(246, 238, 231, .88));
@@ -1521,7 +1528,7 @@ main {
 }
 
 .memory-roll {
-  padding: clamp(20px, 2vw, 32px);
+  padding: 12px 16px;
   border-radius: 20px;
   background: rgba(255, 255, 255, .05);
   border: 1px solid rgba(255, 255, 255, .1);
@@ -1682,17 +1689,19 @@ main {
 }
 
 .site-footer {
-  margin-top: 20px;
-  padding: 22px 28px;
+  margin-top: 10px;
+  padding: 10px 20px;
   display: grid;
-  grid-template-columns: minmax(220px, .7fr) minmax(260px, 1fr) minmax(260px, .7fr);
-  gap: 24px;
+  grid-template-columns: minmax(180px, .7fr) minmax(220px, 1fr) minmax(200px, .7fr);
+  gap: 12px;
   align-items: center;
   color: #fff8f0;
   background:
     linear-gradient(135deg, rgba(18, 18, 18, .94), rgba(8, 8, 8, .9)),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, .04) 0 1px, transparent 1px 24px);
   border-color: rgba(255, 255, 255, .18);
+  position: relative;
+  overflow: hidden;
 }
 
 .site-footer p {
@@ -1715,7 +1724,7 @@ main {
 
 .site-footer form div {
   display: flex;
-  min-height: 58px;
+  min-height: 42px;
   border: 1px solid rgba(255, 255, 255, .25);
   border-radius: 999px;
   overflow: hidden;
@@ -1962,25 +1971,19 @@ main {
   }
 
   .result-wrap {
-    min-height: 610px;
+    min-height: auto;
   }
 
   .photo-result {
-    width: min(92vw, 350px);
-    min-height: 420px;
-    padding: 46px 22px 70px;
-  }
-
-  .photo-slot {
-    min-height: 70px;
+    width: min(92vw, 340px);
+    padding: 22px 12px 36px;
   }
 
   .frame-chrome.photo-result,
   .frame-camera.photo-result,
   .frame-magazine.photo-result {
     width: min(92vw, 360px);
-    min-height: 400px;
-    padding: 46px 22px 70px;
+    padding: 22px 14px 36px;
   }
 
   .frame-chrome .photo-slots,
@@ -2065,7 +2068,10 @@ main {
 }
 
 .editor-tab-content {
-  margin-top: 18px;
+  margin-top: 10px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .panel-hint {
@@ -2082,7 +2088,10 @@ main {
 .sticker-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 6px;
+  overflow-y: auto;
+  max-height: 250px;
+  padding-right: 4px;
 }
 
 .sticker-chip {
@@ -2417,6 +2426,7 @@ main {
       "strip-edit sidebar";
     grid-template-columns: 1fr 1fr;
     gap: 16px;
+    height: auto;
   }
 
   .result-wrap {
@@ -2475,10 +2485,11 @@ main {
       "strip-edit"
       "sidebar";
     grid-template-columns: 1fr;
+    height: auto;
   }
 
   .result-wrap {
-    min-height: 320px;
+    min-height: 300px;
   }
 
 

@@ -212,7 +212,7 @@ function App() {
         />
       </section>
       <TemplateRail frame={frame} setFrame={setFrame} photos={stripPhotos} filter={selectedFilter} accent={accent} />
-      <section id="memory">
+      <section id="memory" className="memory-lab-section">
         <MemoryLab
           frame={frame} photos={stripPhotos} filter={selectedFilter} accent={accent}
           decorations={decorations} setDecorations={setDecorations}
@@ -1250,8 +1250,8 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
   const bottomPadding = 150;
   
   const slotW = columns === 2 ? (baseW - margin * 2 - gap) / 2 : baseW - margin * 2;
-  // Use a more portrait-oriented ratio (0.85) for a "lengthy" traditional photostrip feel
-  const slotH = slotW * 0.85; 
+  // Standard 4:3 ratio (0.75) for photos
+  const slotH = slotW * 0.75; 
   
   const rows = Math.ceil(photos.length / columns);
   // Calculate baseH dynamically based on rows to ensure all photos fit perfectly

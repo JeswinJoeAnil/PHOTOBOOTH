@@ -1,0 +1,2 @@
+"  const isRenderingRef = useRef(!freeze);\n\n  useEffect(() => {\n    isRenderingRef.current = !freeze;\n  }, [freeze]);\n\n  useEffect(() => {\n    const container = containerRef.current;\n    if (!container) return;\n\n    let pointer = {\n        x: .6
+<truncated 5985 bytes>
