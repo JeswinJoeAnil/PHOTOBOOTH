@@ -105,7 +105,7 @@ const FooterWebGL = ({ freeze }) => {
         let targetA = new THREE.WebGLRenderTarget(
             width * window.devicePixelRatio,
             height * window.devicePixelRatio,
-            { format: THREE.RGBAFormat, type: THREE.FloatType }
+            { format: THREE.RGBAFormat, type: THREE.HalfFloatType }
         );
         let targetB = targetA.clone();
 

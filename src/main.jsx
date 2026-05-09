@@ -897,7 +897,7 @@ function DoodleCanvas({ stripTab, doodlePaths, setDoodlePaths, doodleBrush }) {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 15, pointerEvents: stripTab === 'doodle' ? 'auto' : 'none', touchAction: 'none' }}
+      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 15, pointerEvents: stripTab === 'doodle' ? 'auto' : 'none', touchAction: 'none', cursor: stripTab === 'doodle' ? 'var(--cursor-crosshair)' : 'inherit' }}
     >
       <svg width="100%" height="100%" viewBox={`0 0 900 ${viewHeight}`} style={{ overflow: 'visible' }}>
         {doodlePaths.map((path, i) => (

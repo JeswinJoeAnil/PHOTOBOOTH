@@ -215,9 +215,17 @@ main {
 }
 
 @keyframes skipPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .pill-button,
@@ -1266,20 +1274,33 @@ main {
 
 /* ── Active deco selection ring ─────── */
 @keyframes dash-spin {
-  to { stroke-dashoffset: -20; }
+  to {
+    stroke-dashoffset: -20;
+  }
 }
+
 @keyframes handle-pop {
-  0%   { opacity: 0; transform: scale(0.4); }
-  70%  { transform: scale(1.12); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  70% {
+    transform: scale(1.12);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .active-deco {
   outline: none;
   box-shadow:
-    0 0 0 1.5px rgba(255,255,255,0.85),
-    0 0 0 3px rgba(200,160,255,0.55),
-    0 0 22px 4px rgba(220,150,255,0.35);
+    0 0 0 1.5px rgba(255, 255, 255, 0.85),
+    0 0 0 3px rgba(200, 160, 255, 0.55),
+    0 0 22px 4px rgba(220, 150, 255, 0.35);
 }
 
 /* ── Interactive Bounding Box Handles ─────── */
@@ -1289,13 +1310,13 @@ main {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.9);
+  border: 2px solid rgba(255, 255, 255, 0.9);
   pointer-events: auto;
   z-index: 40;
-  animation: handle-pop 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
-  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1),
-              box-shadow 0.15s ease,
-              filter 0.15s ease;
+  animation: handle-pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
   user-select: none;
 }
 
@@ -1303,13 +1324,14 @@ main {
 .deco-handle[data-tip] {
   --tip-opacity: 0;
 }
+
 .deco-handle[data-tip]::before {
   content: attr(data-tip);
   position: absolute;
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(30,20,50,0.88);
+  background: rgba(30, 20, 50, 0.88);
   backdrop-filter: blur(8px);
   color: #f0e8ff;
   font-size: 9px;
@@ -1321,8 +1343,9 @@ main {
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s ease;
-  border: 1px solid rgba(200,160,255,0.3);
+  border: 1px solid rgba(200, 160, 255, 0.3);
 }
+
 .deco-handle[data-tip]:hover::before {
   opacity: 1;
 }
@@ -1338,20 +1361,23 @@ main {
   translate: -50% 0;
   width: 30px;
   height: 30px;
-  cursor: grab;
+  cursor: var(--cursor-move);
   background: linear-gradient(145deg, #c89eff, #9b6eff);
-  box-shadow: 0 4px 14px rgba(160,100,255,0.55), 0 0 0 2px rgba(255,255,255,0.8);
+  box-shadow: 0 4px 14px rgba(160, 100, 255, 0.55), 0 0 0 2px rgba(255, 255, 255, 0.8);
   color: #fff;
   animation-delay: 0.04s;
 }
+
 .rotate-handle:active {
-  cursor: grabbing;
+  cursor: var(--cursor-move);
 }
+
 .rotate-handle:hover {
   transform: scale(1.18) rotate(-15deg);
-  box-shadow: 0 6px 20px rgba(160,100,255,0.75), 0 0 0 2px #fff;
+  box-shadow: 0 6px 20px rgba(160, 100, 255, 0.75), 0 0 0 2px #fff;
   filter: brightness(1.1);
 }
+
 /* connector line */
 .rotate-handle::after {
   content: '';
@@ -1361,7 +1387,7 @@ main {
   translate: -50% 0;
   width: 2px;
   height: 18px;
-  background: linear-gradient(to bottom, rgba(200,158,255,0.9), rgba(200,158,255,0.1));
+  background: linear-gradient(to bottom, rgba(200, 158, 255, 0.9), rgba(200, 158, 255, 0.1));
   border-radius: 2px;
   z-index: -1;
   pointer-events: none;
@@ -1373,15 +1399,16 @@ main {
   right: -16px;
   width: 32px;
   height: 32px;
-  cursor: nwse-resize;
+  cursor: var(--cursor-nwse-resize);
   background: linear-gradient(145deg, #ffb3d9, #ff6eb4);
-  box-shadow: 0 4px 14px rgba(255,100,180,0.55), 0 0 0 2px rgba(255,255,255,0.8);
+  box-shadow: 0 4px 14px rgba(255, 100, 180, 0.55), 0 0 0 2px rgba(255, 255, 255, 0.8);
   color: #fff;
   animation-delay: 0.08s;
 }
+
 .resize-handle:hover {
   transform: scale(1.18);
-  box-shadow: 0 6px 20px rgba(255,100,180,0.75), 0 0 0 2px #fff;
+  box-shadow: 0 6px 20px rgba(255, 100, 180, 0.75), 0 0 0 2px #fff;
   filter: brightness(1.1);
 }
 
@@ -1391,15 +1418,16 @@ main {
   right: -16px;
   width: 26px;
   height: 26px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   background: linear-gradient(145deg, #ff9090, #ff4545);
-  box-shadow: 0 4px 12px rgba(255,60,60,0.5), 0 0 0 2px rgba(255,255,255,0.8);
+  box-shadow: 0 4px 12px rgba(255, 60, 60, 0.5), 0 0 0 2px rgba(255, 255, 255, 0.8);
   color: #fff;
   animation-delay: 0s;
 }
+
 .delete-handle:hover {
   transform: scale(1.22) rotate(8deg);
-  box-shadow: 0 6px 18px rgba(255,60,60,0.75), 0 0 0 2px #fff;
+  box-shadow: 0 6px 18px rgba(255, 60, 60, 0.75), 0 0 0 2px #fff;
   filter: brightness(1.12);
 }
 
@@ -1408,17 +1436,37 @@ main {
   position: absolute;
   width: 8px;
   height: 8px;
-  background: radial-gradient(circle, #fff 60%, rgba(200,158,255,0.6) 100%);
+  background: radial-gradient(circle, #fff 60%, rgba(200, 158, 255, 0.6) 100%);
   border-radius: 50%;
-  border: 1.5px solid rgba(200,160,255,0.7);
+  border: 1.5px solid rgba(200, 160, 255, 0.7);
   pointer-events: none;
-  box-shadow: 0 0 8px rgba(200,158,255,0.8), 0 0 4px rgba(255,255,255,0.9);
-  animation: handle-pop 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
+  box-shadow: 0 0 8px rgba(200, 158, 255, 0.8), 0 0 4px rgba(255, 255, 255, 0.9);
+  animation: handle-pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
-.deco-corner.top-left    { top: -4px;    left: -4px; animation-delay: 0.02s; }
-.deco-corner.top-right   { top: -4px;    right: -4px; animation-delay: 0.05s; }
-.deco-corner.bottom-left { bottom: -4px; left: -4px; animation-delay: 0.07s; }
-.deco-corner.bottom-right { bottom: -4px; right: -4px; animation-delay: 0.09s; }
+
+.deco-corner.top-left {
+  top: -4px;
+  left: -4px;
+  animation-delay: 0.02s;
+}
+
+.deco-corner.top-right {
+  top: -4px;
+  right: -4px;
+  animation-delay: 0.05s;
+}
+
+.deco-corner.bottom-left {
+  bottom: -4px;
+  left: -4px;
+  animation-delay: 0.07s;
+}
+
+.deco-corner.bottom-right {
+  bottom: -4px;
+  right: -4px;
+  animation-delay: 0.09s;
+}
 
 .tape-a {
   left: 4px;
@@ -2124,6 +2172,8 @@ main {
 /* ── FOOTER ─────────────────────── */
 .site-footer {
   margin-top: 60px;
+  position: relative;
+  overflow: hidden;
   background: var(--ink);
   color: var(--paper);
   border-radius: 40px 40px 0 0;
@@ -2136,7 +2186,7 @@ main {
   box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.2);
 }
 
-.site-footer > div:first-child {
+.site-footer>div:first-child {
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -2172,8 +2222,15 @@ main {
 }
 
 @keyframes floatSticker {
-  0%, 100% { transform: translateY(0) rotate(var(--base-rot)); }
-  50% { transform: translateY(-12px) rotate(calc(var(--base-rot) + 5deg)); }
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--base-rot));
+  }
+
+  50% {
+    transform: translateY(-12px) rotate(calc(var(--base-rot) + 5deg));
+  }
 }
 
 .f-sticker:hover {
@@ -2182,23 +2239,25 @@ main {
   animation-play-state: paused;
 }
 
-.f-sticker.corner-l { 
-  height: 120px; 
-  top: -20px; 
-  left: -20px; 
-  --base-rot: -15deg; 
-  animation: floatSticker 6s ease-in-out infinite; 
-  z-index: 0; /* Behind everything but above flowers */
+.f-sticker.corner-l {
+  height: 120px;
+  top: -20px;
+  left: -20px;
+  --base-rot: -15deg;
+  animation: floatSticker 6s ease-in-out infinite;
+  z-index: 0;
+  /* Behind everything but above flowers */
   opacity: 0.8;
 }
 
-.f-sticker.corner-r { 
-  height: 140px; 
-  bottom: -15px; 
-  right: -20px; 
-  --base-rot: 20deg; 
-  animation: floatSticker 7s ease-in-out infinite 0.5s; 
-  z-index: 0; /* Behind everything but above flowers */
+.f-sticker.corner-r {
+  height: 140px;
+  bottom: -15px;
+  right: -20px;
+  --base-rot: 20deg;
+  animation: floatSticker 7s ease-in-out infinite 0.5s;
+  z-index: 0;
+  /* Behind everything but above flowers */
   opacity: 0.8;
 }
 
@@ -2239,8 +2298,17 @@ main {
 }
 
 @keyframes pulseHint {
-  0%, 100% { opacity: 0.5; transform: scale(0.98); }
-  50% { opacity: 1; transform: scale(1); }
+
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.98);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .f-typo {
@@ -2251,26 +2319,24 @@ main {
   transform: rotate(-3deg);
   letter-spacing: 1px;
   white-space: nowrap;
-  
+
   /* Brighter glossy cherry red metallic gradient */
-  background: linear-gradient(
-    to bottom, 
-    #ff4d63 0%, 
-    #d4001a 30%, 
-    #ffffff 45%,
-    #ffffff 50%, 
-    #b30015 55%, 
-    #4a0005 100%
-  );
+  background: linear-gradient(to bottom,
+      #ff4d63 0%,
+      #d4001a 30%,
+      #ffffff 45%,
+      #ffffff 50%,
+      #b30015 55%,
+      #4a0005 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  
+
   /* Silver outline to make the intricate gothic letters pop against the dark background */
   -webkit-text-stroke: 1.5px #fff9e6;
 
   /* Deep 3D text shadow effect - stacked dark tones + glowing red base */
-  text-shadow: 
+  text-shadow:
     0 0 8px rgba(255, 51, 79, 0.6),
     1px 1px 0 #111,
     2px 2px 0 #111,
@@ -2279,18 +2345,19 @@ main {
     5px 5px 0 #8a0015,
     6px 6px 0 #111,
     7px 7px 0 #111,
-    12px 12px 20px rgba(0,0,0,0.8);
-    
+    12px 12px 20px rgba(0, 0, 0, 0.8);
+
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.4s ease;
   user-select: none;
   pointer-events: none;
-  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.4));
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
 }
 
 .f-typo:hover {
   transform: rotate(0deg) scale(1.05);
-  filter: drop-shadow(0 10px 15px rgba(0,0,0,0.6));
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.6));
 }
+
 .site-footer form {
   z-index: 2;
   display: flex;
@@ -2307,7 +2374,7 @@ main {
   color: var(--vibe);
 }
 
-.site-footer form > div {
+.site-footer form>div {
   display: flex;
   gap: 12px;
   width: 100%;
@@ -2381,7 +2448,7 @@ main {
     grid-template-rows: auto auto;
   }
 
-  .hero > *:last-child {
+  .hero>*:last-child {
     grid-column: 1 / -1;
   }
 }
@@ -2454,7 +2521,7 @@ main {
     align-items: flex-start;
   }
 
-  .site-footer form > div {
+  .site-footer form>div {
     max-width: 100%;
   }
 }
@@ -2592,7 +2659,7 @@ main {
   .f-sticker {
     transform: scale(0.8) !important;
   }
-  
+
   .f-typo {
     font-size: 42px;
     letter-spacing: 1px;
