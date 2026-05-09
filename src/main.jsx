@@ -1002,11 +1002,11 @@ function Footer() {
       </div>
       <div className="footer-stickers">
         <img src={asset('sticker2_34.png')} alt="" className="f-sticker a" />
-        <img src={asset('stickers3_44.png')} alt="" className="f-sticker b" />
+        <img src={asset('stickers3_35.png')} alt="" className="f-sticker b" />
         <span className="f-typo">Sweetest Memories</span>
-        <img src={asset('sticker4_8.png')} alt="" className="f-sticker c" />
+        <img src={asset('sticker4_19.png')} alt="" className="f-sticker c" />
         <img src={asset('stickers3_14.png')} alt="" className="f-sticker d" />
-        <img src={asset('sticker2_24.png')} alt="" className="f-sticker e" />
+        <img src={asset('sticker2_2.png')} alt="" className="f-sticker e" />
       </div>
       <form>
         <label htmlFor="email">Stay in the loop</label>
