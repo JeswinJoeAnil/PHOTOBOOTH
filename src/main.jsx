@@ -32,6 +32,9 @@ import {
   Wand2,
   Zap,
   Upload,
+  Maximize,
+  Minimize,
+  Layout
 } from 'lucide-react';
 import './styles.css';
 
@@ -99,7 +102,9 @@ const stickers = ['good vibes', 'Y2K', '2004', 'no bad days', 'xoxo', 'iconic', 
 
 function App() {
   const [mode, setMode] = useState(4);
+  const [timer, setTimer] = useState(3);
   const [captured, setCaptured] = useState([]);
+  const [fitSettings, setFitSettings] = useState({}); // { [index]: 'cover' | 'contain' }
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [frame, setFrame] = useState(frames[0]);
   const [audioOn, setAudioOn] = useState(false);
@@ -190,6 +195,8 @@ function App() {
           setOpen={setBoothOpen}
           mode={mode}
           setMode={setMode}
+          timer={timer}
+          setTimer={setTimer}
           activeFilter={selectedFilter}
           captured={captured}
           setCaptured={setCaptured}
@@ -226,6 +233,7 @@ function App() {
           zoom={zoom} setZoom={setZoom} rotation={rotation} setRotation={setRotation} vignette={vignette}
           stripTab={stripTab} setStripTab={setStripTab} accentColor={accent} setAccentColor={setAccent}
           captured={captured}
+          fitSettings={fitSettings} setFitSettings={setFitSettings}
         />
       </section>
       <Footer />
@@ -332,7 +340,7 @@ function Hero({ onStart, photos, filter }) {
   );
 }
 
-function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, setCaptured, flashOn, setFlashOn, flashFire, setFlashFire, mirrorOn, setMirrorOn, onCapture }) {
+function CameraBooth({ isOpen, setOpen, mode, setMode, timer, setTimer, activeFilter, captured, setCaptured, flashOn, setFlashOn, flashFire, setFlashFire, mirrorOn, setMirrorOn, onCapture }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [streaming, setStreaming] = useState(false);
@@ -426,9 +434,11 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, s
     const isFull = captured.length >= mode;
     setShotIndex(isFull ? 1 : captured.length + 1);
 
-    for (let t = 3; t >= 1; t--) {
-      setCountdown(t);
-      await delay(1000);
+    if (timer > 0) {
+      for (let t = timer; t >= 1; t--) {
+        setCountdown(t);
+        await delay(1000);
+      }
     }
     setCountdown(null);
 
@@ -454,9 +464,11 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, s
     for (let i = 0; i < totalShots; i++) {
       if (!shootingRef.current) break;
       setShotIndex(i + 1);
-      for (let t = 3; t >= 1; t--) {
-        setCountdown(t);
-        await delay(1000);
+      if (timer > 0) {
+        for (let t = timer; t >= 1; t--) {
+          setCountdown(t);
+          await delay(1000);
+        }
       }
       setCountdown(null);
       currentPhotos = captureOnePhoto(currentPhotos);
@@ -485,7 +497,7 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, s
       </div>
       <div className="capture-layout">
         <div className="mode-stack" aria-label="Photo count">
-          {[2, 4, 6].map((item) => (
+          {[2, 3, 4, 6].map((item) => (
             <button key={item} className={mode === item ? 'active' : ''} onClick={() => { if (!shooting) setMode(item); }}>
               <Grid2X2 size={18} />
               <span>{item} shots</span>
@@ -505,7 +517,16 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, activeFilter, captured, s
         <div className="camera-options">
           <button className={flashOn ? 'opt-active' : ''} onClick={() => setFlashOn((v) => !v)}><Flashlight size={18} /> Flash <span>{flashOn ? 'on' : 'off'}</span></button>
           <button className={mirrorOn ? 'opt-active' : ''} onClick={() => setMirrorOn((v) => !v)}><RefreshCcw size={18} /> Mirror <span>{mirrorOn ? 'on' : 'off'}</span></button>
-          <button><BatteryMedium size={18} /> Timer <span>3s</span></button>
+          <button 
+            className={timer > 0 ? 'opt-active' : ''} 
+            onClick={() => {
+              const options = [0, 2, 3, 5, 10];
+              const next = options[(options.indexOf(timer) + 1) % options.length];
+              setTimer(next);
+            }}
+          >
+            <BatteryMedium size={18} /> Timer <span>{timer === 0 ? 'off' : `${timer}s`}</span>
+          </button>
           <button onClick={() => { if (!shooting) setCaptured((list) => list.slice(0, -1)); }}><RotateCw size={18} /> Retake <span>{captured.length}</span></button>
         </div>
       </div>
@@ -538,12 +559,15 @@ function StripEditor(props) {
     doodlePaths, setDoodlePaths, doodleBrush, setDoodleBrush,
     accentColor, setAccentColor, zoom, setZoom, rotation, setRotation,
     stripTab, setStripTab,
+    fitSettings, setFitSettings,
+    mode
   } = props;
 
   const tabs = [
     { id: 'text', icon: Type, label: 'Text' },
     { id: 'stickers', icon: Sticker, label: 'Stickers' },
     { id: 'doodle', icon: MousePointer2, label: 'Doodle' },
+    { id: 'layout', icon: Layout, label: 'Layout' },
   ];
 
   const activeDeco = decorations.find(d => d.id === activeDecoId);
@@ -680,6 +704,43 @@ function StripEditor(props) {
             )}
           </div>
         )}
+
+        {stripTab === 'layout' && (
+          <motion.div className="layout-editor" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+            <p className="panel-hint" style={{ marginBottom: '16px' }}>
+              Choose how your photos fill the slots. "Uncrop" to show the full image if it doesn't fit the frame.
+            </p>
+            <div className="layout-grid" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {Array.from({ length: mode }).map((_, i) => (
+                <div key={i} className="layout-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.03)', padding: '12px', borderRadius: '12px' }}>
+                  <span style={{ fontWeight: 700, fontSize: '13px' }}>Slot {i + 1}</span>
+                  <div className="toggle-group" style={{ display: 'flex', gap: '4px', background: '#eee', padding: '3px', borderRadius: '8px' }}>
+                    <button 
+                      onClick={() => setFitSettings({ ...fitSettings, [i]: 'cover' })}
+                      style={{ 
+                        padding: '6px 10px', borderRadius: '6px', border: 0, fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                        background: (!fitSettings[i] || fitSettings[i] === 'cover') ? '#fff' : 'transparent',
+                        boxShadow: (!fitSettings[i] || fitSettings[i] === 'cover') ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
+                      }}
+                    >
+                      Crop to Fill
+                    </button>
+                    <button 
+                      onClick={() => setFitSettings({ ...fitSettings, [i]: 'contain' })}
+                      style={{ 
+                        padding: '6px 10px', borderRadius: '6px', border: 0, fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                        background: fitSettings[i] === 'contain' ? '#fff' : 'transparent',
+                        boxShadow: fitSettings[i] === 'contain' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
+                      }}
+                    >
+                      Uncrop
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );
@@ -760,6 +821,7 @@ function MemoryLab(props) {
     doodlePaths, setDoodlePaths, doodleBrush, setDoodleBrush,
     developing, setDeveloping, zoom, setZoom, rotation, setRotation, vignette,
     stripTab, setStripTab, accentColor, setAccentColor, captured,
+    fitSettings, setFitSettings
   } = props;
   const exportRef = useRef(null);
 
@@ -767,7 +829,7 @@ function MemoryLab(props) {
     setDeveloping(type);
     await new Promise((resolve) => window.setTimeout(resolve, 1350));
     if (type === 'png' || type === 'jpg') {
-      const canvas = await renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette });
+      const canvas = await renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette, fitSettings });
       const link = document.createElement('a');
       link.download = `memorie-${frame.id}.${type === 'png' ? 'png' : 'jpg'}`;
       link.href = canvas.toDataURL(type === 'png' ? 'image/png' : 'image/jpeg', 0.92);
@@ -786,6 +848,7 @@ function MemoryLab(props) {
           doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths} doodleBrush={doodleBrush}
           stripTab={stripTab}
           zoom={zoom} rotation={rotation} vignette={vignette}
+          fitSettings={fitSettings}
         />
       </div>
 
@@ -842,7 +905,7 @@ function MemoryLab(props) {
   );
 }
 
-function PhotoResult({ frame, photos, filter, accent, decorations, setDecorations, activeDecoId, setActiveDecoId, doodlePaths, setDoodlePaths, doodleBrush, stripTab, zoom, rotation, vignette }) {
+function PhotoResult({ frame, photos, filter, accent, decorations, setDecorations, activeDecoId, setActiveDecoId, doodlePaths, setDoodlePaths, doodleBrush, stripTab, zoom, rotation, vignette, fitSettings }) {
   const wrapperRef = useRef(null);
   const stripRef = useRef(null);
   const [scale, setScale] = useState(1);
@@ -887,7 +950,7 @@ function PhotoResult({ frame, photos, filter, accent, decorations, setDecoration
         <div className="result-meta">PM 04:23 / MAY. 23 2004</div>
         <div className="photo-slots" onClick={() => setActiveDecoId(null)}>
           {photos.map((photo, index) => (
-            <DraggablePhoto key={`${photo}-${index}`} photo={photo} filter={filter} index={index} zoom={zoom} rotation={rotation} />
+            <DraggablePhoto key={`${photo}-${index}`} photo={photo} filter={filter} index={index} zoom={zoom} rotation={rotation} fitMode={fitSettings?.[index]} />
           ))}
         </div>
 
@@ -962,10 +1025,19 @@ function DoodleCanvas({ stripTab, doodlePaths, setDoodlePaths, doodleBrush }) {
   );
 }
 
-function DraggablePhoto({ photo, filter, index, zoom, rotation }) {
+function DraggablePhoto({ photo, filter, index, zoom, rotation, fitMode }) {
   return (
     <motion.div className="photo-slot" drag dragMomentum={false} whileDrag={{ scale: 1.035, zIndex: 5 }} style={{ rotate: rotation + (index % 2 ? 1.5 : -1.2) }}>
-      <img src={photo} style={{ filter: filter.css, transform: `scale(${zoom})` }} alt="" />
+      <img 
+        src={photo} 
+        style={{ 
+          filter: filter.css, 
+          transform: `scale(${zoom})`,
+          objectFit: fitMode === 'contain' ? 'contain' : 'cover',
+          background: '#000'
+        }} 
+        alt="" 
+      />
       <span>{String(index + 1).padStart(2, '0')}</span>
     </motion.div>
   );
@@ -1287,7 +1359,7 @@ function Footer() {
   );
 }
 
-async function renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette }) {
+async function renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette, fitSettings }) {
   const baseW = 900;
   // Match CSS columns: magazine, chrome, and camera frames use a 2-column grid
   const columns = (frame.id === 'magazine' || frame.id === 'chrome' || frame.id === 'camera') ? 2 : 1;
@@ -1369,7 +1441,19 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
     ctx.fillRect(-slotW / 2 - 10, -slotH / 2 - 10, slotW + 20, slotH + 20);
     ctx.shadowColor = 'transparent';
     ctx.filter = filter.css;
-    drawCover(ctx, img, -slotW / 2, -slotH / 2, slotW, slotH, zoom);
+    
+    const fit = fitSettings?.[index] || 'cover';
+    if (fit === 'contain') {
+      const sW = img.width;
+      const sH = img.height;
+      const r = Math.min(slotW / sW, slotH / sH);
+      const dw = sW * r;
+      const dh = sH * r;
+      ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh);
+    } else {
+      drawCover(ctx, img, -slotW / 2, -slotH / 2, slotW, slotH, zoom);
+    }
+    
     ctx.filter = 'none';
     ctx.restore();
   }

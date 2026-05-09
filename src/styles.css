@@ -750,8 +750,8 @@ main {
 
 .capture-layout {
   display: grid;
-  grid-template-columns: 92px minmax(0, 1fr) 112px;
-  gap: 18px;
+  grid-template-columns: 92px 1fr 112px;
+  gap: 16px;
   align-items: stretch;
   margin-top: 22px;
 }
@@ -802,7 +802,8 @@ main {
   position: relative;
   overflow: hidden;
   aspect-ratio: 4 / 3;
-  min-height: 330px;
+  width: 100%;
+  min-height: 240px;
   border-radius: 34px;
   background: #090909;
   border: 12px solid #161616;
@@ -2015,10 +2016,15 @@ main {
     grid-template-columns: 1fr;
   }
 
-  .mode-stack,
+  .mode-stack {
+    grid-template-columns: repeat(5, 1fr);
+    order: 1;
+    gap: 8px;
+  }
+
   .camera-options {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    order: 2;
+    grid-template-columns: repeat(4, 1fr);
+    order: 3;
     gap: 8px;
   }
 
@@ -2638,7 +2644,10 @@ main {
   }
 
   .camera-options {
-    display: none;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    order: 3;
   }
 
   .template-rail {
