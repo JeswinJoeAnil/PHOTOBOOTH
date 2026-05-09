@@ -32,7 +32,6 @@ import {
   Zap,
 } from 'lucide-react';
 import './styles.css';
-import FooterWebGL from './FooterWebGL';
 
 const asset = (name) => new URL(`../assets/${name}`, import.meta.url).href;
 
@@ -1200,32 +1199,28 @@ function AmbientLayers() {
 }
 
 function Footer() {
-  const [freeze, setFreeze] = useState(false);
-
   return (
     <footer className="site-footer">
-      <FooterWebGL freeze={freeze} />
       
       {/* Corner Stickers */}
       <img src={asset('sticker2_34.png')} alt="" className="f-sticker corner-l" />
       <img src={asset('stickers3_35.png')} alt="" className="f-sticker corner-r" />
 
-      <div style={{ position: 'relative', zIndex: 2 }}>
-        <strong>About Memorie</strong>
-        <p>Every session becomes a small artifact: camera glow, paper texture, chrome charm, timestamp, memory.</p>
-        <button 
-          onClick={() => setFreeze(!freeze)} 
-          type="button"
-          className="footer-freeze-btn"
-        >
-          {freeze ? 'UNFREEZE FLOWERS' : 'FREEZE FLOWERS'}
-        </button>
+      {/* Engaging Background Marquee */}
+      <div className="footer-marquee">
+        <div className="marquee-content">
+          <span>✦ CAPTURE THE CHAOS ✦ NOSTALGIA FOREVER ✦ PRINT YOUR VIBE ✦ Y2K AESTHETIC </span>
+          <span>✦ CAPTURE THE CHAOS ✦ NOSTALGIA FOREVER ✦ PRINT YOUR VIBE ✦ Y2K AESTHETIC </span>
+        </div>
       </div>
 
-      <div className="footer-center" style={{ position: 'relative', zIndex: 2, pointerEvents: 'none' }}>
+      {/* Empty Left Column for Grid Balancing */}
+      <div className="footer-left" style={{ position: 'relative', zIndex: 2 }}></div>
+
+      <div className="footer-center" style={{ position: 'relative', zIndex: 2, pointerEvents: 'none', display: 'flex', justifyContent: 'center' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', transform: 'rotate(-3deg)', pointerEvents: 'none' }}>
           <span className="f-typo">Sweetest Memories</span>
-          <span className="f-hint">Press anywhere to add flowers</span>
+          <span className="f-tagline">keeping moments a little longer, one flash at a time ✦</span>
         </div>
       </div>
 
