@@ -1926,14 +1926,14 @@ main {
 
 /* ── FOOTER ─────────────────────── */
 .site-footer {
-  margin-top: 100px;
+  margin-top: 60px;
   background: var(--ink);
   color: var(--paper);
   border-radius: 40px 40px 0 0;
-  padding: 70px 60px;
+  padding: 40px 30px;
   display: grid;
   grid-template-columns: 1fr 1.2fr 1fr;
-  gap: 40px;
+  gap: 20px;
   position: relative;
   overflow: hidden;
   box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.2);
@@ -1947,17 +1947,17 @@ main {
 }
 
 .site-footer strong {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: 900;
   letter-spacing: -0.5px;
   color: var(--vibe);
 }
 
 .site-footer p {
-  font-size: 16px;
-  line-height: 1.7;
+  font-size: 14px;
+  line-height: 1.6;
   opacity: 0.85;
-  max-width: 320px;
+  max-width: 280px;
 }
 
 .footer-stickers {
@@ -1997,9 +1997,9 @@ main {
   position: absolute;
   z-index: 5;
   font-family: 'UnifrakturMaguntia', cursive;
-  font-size: 64px;
+  font-size: 48px;
   transform: rotate(-3deg);
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   white-space: nowrap;
   
   /* Brighter glossy cherry red metallic gradient */
