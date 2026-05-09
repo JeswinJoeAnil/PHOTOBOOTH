@@ -132,11 +132,7 @@ function App() {
   const [flashOn, setFlashOn] = useState(true);
   const [flashFire, setFlashFire] = useState(false);
   const [isBoothOpen, setBoothOpen] = useState(false);
-  const [decorations, setDecorations] = useState([
-    { id: '1', type: 'text', content: 'lovely day xoxo', x: 56, y: 86, rotation: -2, scale: 1, font: 'Fraunces', color: '#ff5aaf' },
-    { id: '2', type: 'sticker', content: 'good vibes', x: 14, y: 64, rotation: -8, scale: 0.8, isSmall: true },
-    { id: '3', type: 'sticker', content: 'Y2K', x: 66, y: 18, rotation: 5, scale: 1, isChrome: true }
-  ]);
+  const [decorations, setDecorations] = useState([]);
   const [activeDecoId, setActiveDecoId] = useState(null);
   const [doodlePaths, setDoodlePaths] = useState([]);
   const [doodleBrush, setDoodleBrush] = useState({ color: '#ff5aaf', size: 6, shadow: 0 });
