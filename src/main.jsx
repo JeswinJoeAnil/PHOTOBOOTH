@@ -34,7 +34,8 @@ import {
   Upload,
   Maximize,
   Minimize,
-  Layout
+  Layout,
+  X
 } from 'lucide-react';
 import './styles.css';
 
@@ -153,6 +154,7 @@ function App() {
   const [stripTab, setStripTab] = useState('text');
   const [mirrorOn, setMirrorOn] = useState(true);
   const [isFeedbackOpen, setFeedbackOpen] = useState(false);
+  const [isMenuOpen, setMenuOpen] = useState(false);
 
   const stripPhotos = useMemo(() => {
     return Array.from({ length: mode }, (_, index) => {
@@ -169,11 +171,12 @@ function App() {
   return (
     <main>
       <AmbientLayers />
-      <Header 
-        audioOn={audioOn} 
-        toggleAudio={toggleAudio} 
-        nextTrack={nextTrack} 
+      <Header
+        audioOn={audioOn}
+        toggleAudio={toggleAudio}
+        nextTrack={nextTrack}
         onFeedbackOpen={() => setFeedbackOpen(true)}
+        onMenuOpen={() => setMenuOpen(true)}
       />
       <audio
         ref={audioRef}
@@ -239,17 +242,22 @@ function App() {
       <Footer />
       <AnimatePresence>
         {isFeedbackOpen && (
-          <FeedbackOverlay 
-            onClose={() => setFeedbackOpen(false)} 
-            ownerEmail="jeswinjoeanil5@gmail.com" 
+          <FeedbackOverlay
+            onClose={() => setFeedbackOpen(false)}
+            ownerEmail="jeswinjoeanil5@gmail.com"
           />
         )}
+        <MobileMenu
+          isOpen={isMenuOpen}
+          onClose={() => setMenuOpen(false)}
+          onFeedbackOpen={() => setFeedbackOpen(true)}
+        />
         {flashFire && <motion.div className="flash" initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} exit={{ opacity: 0 }} transition={{ duration: 0.46 }} />}</AnimatePresence>
     </main>
   );
 }
 
-function Header({ audioOn, toggleAudio, nextTrack, onFeedbackOpen }) {
+function Header({ audioOn, toggleAudio, nextTrack, onFeedbackOpen, onMenuOpen }) {
   return (
     <motion.header className="site-header" initial={{ y: -36, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 90, damping: 14 }}>
       <a className="brand" href="#top">memorie<span>+</span></a>
@@ -278,7 +286,7 @@ function Header({ audioOn, toggleAudio, nextTrack, onFeedbackOpen }) {
         <button className="icon-button feedback-mobile-btn" onClick={onFeedbackOpen} aria-label="Feedback">
           <MessageSquare size={20} />
         </button>
-        <button className="icon-button menu-btn" aria-label="Open menu"><Menu size={20} /></button>
+        <button className="icon-button menu-btn" onClick={onMenuOpen} aria-label="Open menu"><Menu size={20} /></button>
       </div>
     </motion.header>
   );
@@ -397,7 +405,7 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, timer, setTimer, activeFi
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-    
+
     const remainingSlots = mode - captured.length;
     if (remainingSlots <= 0) {
       alert(`The photostrip is already full (${mode} photos). Please clear the roll to add more.`);
@@ -517,8 +525,8 @@ function CameraBooth({ isOpen, setOpen, mode, setMode, timer, setTimer, activeFi
         <div className="camera-options">
           <button className={flashOn ? 'opt-active' : ''} onClick={() => setFlashOn((v) => !v)}><Flashlight size={18} /> Flash <span>{flashOn ? 'on' : 'off'}</span></button>
           <button className={mirrorOn ? 'opt-active' : ''} onClick={() => setMirrorOn((v) => !v)}><RefreshCcw size={18} /> Mirror <span>{mirrorOn ? 'on' : 'off'}</span></button>
-          <button 
-            className={timer > 0 ? 'opt-active' : ''} 
+          <button
+            className={timer > 0 ? 'opt-active' : ''}
             onClick={() => {
               const options = [0, 2, 3, 5, 10];
               const next = options[(options.indexOf(timer) + 1) % options.length];
@@ -715,9 +723,9 @@ function StripEditor(props) {
                 <div key={i} className="layout-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.03)', padding: '12px', borderRadius: '12px' }}>
                   <span style={{ fontWeight: 700, fontSize: '13px' }}>Slot {i + 1}</span>
                   <div className="toggle-group" style={{ display: 'flex', gap: '4px', background: '#eee', padding: '3px', borderRadius: '8px' }}>
-                    <button 
+                    <button
                       onClick={() => setFitSettings({ ...fitSettings, [i]: 'cover' })}
-                      style={{ 
+                      style={{
                         padding: '6px 10px', borderRadius: '6px', border: 0, fontSize: '11px', fontWeight: 700, cursor: 'pointer',
                         background: (!fitSettings[i] || fitSettings[i] === 'cover') ? '#fff' : 'transparent',
                         boxShadow: (!fitSettings[i] || fitSettings[i] === 'cover') ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
@@ -725,9 +733,9 @@ function StripEditor(props) {
                     >
                       Crop to Fill
                     </button>
-                    <button 
+                    <button
                       onClick={() => setFitSettings({ ...fitSettings, [i]: 'contain' })}
-                      style={{ 
+                      style={{
                         padding: '6px 10px', borderRadius: '6px', border: 0, fontSize: '11px', fontWeight: 700, cursor: 'pointer',
                         background: fitSettings[i] === 'contain' ? '#fff' : 'transparent',
                         boxShadow: fitSettings[i] === 'contain' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
@@ -913,7 +921,7 @@ function PhotoResult({ frame, photos, filter, accent, decorations, setDecoration
   useEffect(() => {
     if (!wrapperRef.current || !stripRef.current) return;
     const compute = () => {
-      const wW = wrapperRef.current.clientWidth  - 32; // 16px padding each side
+      const wW = wrapperRef.current.clientWidth - 32; // 16px padding each side
       const wH = wrapperRef.current.clientHeight - 32;
       const sW = stripRef.current.offsetWidth;
       const sH = stripRef.current.offsetHeight;
@@ -1028,15 +1036,15 @@ function DoodleCanvas({ stripTab, doodlePaths, setDoodlePaths, doodleBrush }) {
 function DraggablePhoto({ photo, filter, index, zoom, rotation, fitMode }) {
   return (
     <motion.div className="photo-slot" drag dragMomentum={false} whileDrag={{ scale: 1.035, zIndex: 5 }} style={{ rotate: rotation + (index % 2 ? 1.5 : -1.2) }}>
-      <img 
-        src={photo} 
-        style={{ 
-          filter: filter.css, 
+      <img
+        src={photo}
+        style={{
+          filter: filter.css,
           transform: `scale(${zoom})`,
           objectFit: fitMode === 'contain' ? 'contain' : 'cover',
           background: '#000'
-        }} 
-        alt="" 
+        }}
+        alt=""
       />
       <span>{String(index + 1).padStart(2, '0')}</span>
     </motion.div>
@@ -1048,18 +1056,18 @@ function DecoHandles({ deco, setDecorations, elementRef }) {
     e.stopPropagation();
     const target = e.currentTarget;
     target.setPointerCapture(e.pointerId);
-    
+
     const rect = elementRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     const startDist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
     const startScale = deco.scale;
-    
+
     const onMove = (moveEvent) => {
-       const currentDist = Math.hypot(moveEvent.clientX - centerX, moveEvent.clientY - centerY);
-       const ratio = currentDist / startDist;
-       const newScale = Math.max(0.2, startScale * ratio);
-       setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scale: newScale } : d));
+      const currentDist = Math.hypot(moveEvent.clientX - centerX, moveEvent.clientY - centerY);
+      const ratio = currentDist / startDist;
+      const newScale = Math.max(0.2, startScale * ratio);
+      setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scale: newScale } : d));
     };
     const onUp = (upEvent) => {
       target.releasePointerCapture(upEvent.pointerId);
@@ -1074,19 +1082,19 @@ function DecoHandles({ deco, setDecorations, elementRef }) {
     e.stopPropagation();
     const target = e.currentTarget;
     target.setPointerCapture(e.pointerId);
-    
+
     const rect = elementRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     const startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
     const startRotation = deco.rotation || 0;
-    
+
     const onMove = (moveEvent) => {
-       const currentAngle = Math.atan2(moveEvent.clientY - centerY, moveEvent.clientX - centerX) * (180 / Math.PI);
-       let delta = currentAngle - startAngle;
-       if (delta > 180) delta -= 360;
-       if (delta < -180) delta += 360;
-       setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, rotation: startRotation + delta } : d));
+      const currentAngle = Math.atan2(moveEvent.clientY - centerY, moveEvent.clientX - centerX) * (180 / Math.PI);
+      let delta = currentAngle - startAngle;
+      if (delta > 180) delta -= 360;
+      if (delta < -180) delta += 360;
+      setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, rotation: startRotation + delta } : d));
     };
     const onUp = (upEvent) => {
       target.releasePointerCapture(upEvent.pointerId);
@@ -1152,7 +1160,7 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
       const dy = moveEvent.clientY - startY;
       const newX = startDecoX + (dx / parentRect.width) * 100;
       const newY = startDecoY + (dy / parentRect.height) * 100;
-      
+
       // Update DOM directly for smooth 60fps dragging without re-renders
       target.style.left = `${newX}%`;
       target.style.top = `${newY}%`;
@@ -1162,7 +1170,7 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
       target.releasePointerCapture(upEvent.pointerId);
       target.removeEventListener('pointermove', onMove);
       target.removeEventListener('pointerup', onUp);
-      
+
       const dx = upEvent.clientX - startX;
       const dy = upEvent.clientY - startY;
       const newX = startDecoX + (dx / parentRect.width) * 100;
@@ -1325,7 +1333,7 @@ function AmbientLayers() {
 function Footer() {
   return (
     <footer className="site-footer">
-      
+
       {/* Corner Stickers */}
       <img src={asset('sticker2_34.png')} alt="" className="f-sticker corner-l" />
       <img src={asset('stickers3_35.png')} alt="" className="f-sticker corner-r" />
@@ -1367,11 +1375,11 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
   const margin = 80;
   const topPadding = 110;
   const bottomPadding = 150;
-  
+
   const slotW = columns === 2 ? (baseW - margin * 2 - gap) / 2 : baseW - margin * 2;
   // Standard 4:3 ratio (0.75) for photos
-  const slotH = slotW * 0.75; 
-  
+  const slotH = slotW * 0.75;
+
   const rows = Math.ceil(photos.length / columns);
   // Calculate baseH dynamically based on rows to ensure all photos fit perfectly
   const baseH = topPadding + bottomPadding + (gap * (rows - 1)) + (slotH * rows);
@@ -1441,7 +1449,7 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
     ctx.fillRect(-slotW / 2 - 10, -slotH / 2 - 10, slotW + 20, slotH + 20);
     ctx.shadowColor = 'transparent';
     ctx.filter = filter.css;
-    
+
     const fit = fitSettings?.[index] || 'cover';
     if (fit === 'contain') {
       const sW = img.width;
@@ -1453,7 +1461,7 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
     } else {
       drawCover(ctx, img, -slotW / 2, -slotH / 2, slotW, slotH, zoom);
     }
-    
+
     ctx.filter = 'none';
     ctx.restore();
   }
@@ -1540,12 +1548,12 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
       ctx.lineWidth = path.size;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      
+
       if (path.shadow) {
         ctx.shadowBlur = path.shadow;
         ctx.shadowColor = path.color;
       }
-      
+
       ctx.moveTo(path.points[0].x, path.points[0].y);
       for (let i = 1; i < path.points.length; i++) {
         ctx.lineTo(path.points[i].x, path.points[i].y);
@@ -1597,9 +1605,9 @@ function FeedbackOverlay({ onClose, ownerEmail }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!msg.trim()) return;
-    
+
     setStatus('sending');
-    
+
     try {
       const response = await fetch('https://formspree.io/f/mpqbybgq', {
         method: 'POST',
@@ -1629,14 +1637,14 @@ function FeedbackOverlay({ onClose, ownerEmail }) {
   return (
     <motion.div className="feedback-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="feedback-backdrop" onClick={onClose} />
-      <motion.div 
+      <motion.div
         className="feedback-card"
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
       >
         <button className="close-feedback" onClick={onClose}>&times;</button>
-        
+
         {status === 'success' ? (
           <div className="feedback-success">
             <div className="success-icon">✦</div>
@@ -1650,11 +1658,11 @@ function FeedbackOverlay({ onClose, ownerEmail }) {
               <h2>Share Your Thoughts</h2>
             </div>
             <p>Your feedback helps us make the <strong>Memory Lab</strong> even better.</p>
-            
+
             <form onSubmit={handleSubmit}>
-              <textarea 
+              <textarea
                 autoFocus
-                placeholder="Type your feedback here..." 
+                placeholder="Type your feedback here..."
                 value={msg}
                 onChange={(e) => setMsg(e.target.value)}
                 disabled={status === 'sending'}
@@ -1669,3 +1677,75 @@ function FeedbackOverlay({ onClose, ownerEmail }) {
     </motion.div>
   );
 }
+
+function MobileMenu({ isOpen, onClose, onFeedbackOpen }) {
+  const links = [
+    { label: 'Booth', href: '#booth' },
+    { label: 'Templates', href: '#templates' },
+    { label: 'Gallery', href: '#memory-lab' },
+    { label: 'Export', href: '#export' },
+  ];
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="mobile-menu-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          style={{ zIndex: 3000 }}
+        >
+          <div className="menu-backdrop" onClick={onClose} />
+          <motion.div
+            className="menu-content"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          >
+            <button className="close-menu" onClick={onClose}>
+              <X size={24} />
+            </button>
+            <div className="menu-links">
+              {links.map((link, idx) => (
+                <motion.a
+                  key={link.href}
+                  href={link.href}
+                  onClick={onClose}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + idx * 0.05 }}
+                  whileHover={{ x: 10, color: '#ff4090' }}
+                >
+                  {link.label}
+                </motion.a>
+              ))}
+              <motion.button
+                className="menu-feedback-btn"
+                onClick={() => { onClose(); onFeedbackOpen(); }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                whileHover={{ scale: 1.05, x: 5 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <MessageSquare size={18} /> Give Feedback
+              </motion.button>
+            </div>
+            <div className="menu-footer">
+              <motion.span
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                ✦ memorie+ photobooth ✦
+              </motion.span>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+
