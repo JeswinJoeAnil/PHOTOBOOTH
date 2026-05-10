@@ -17,6 +17,7 @@ export default function App() {
   const [captured, setCaptured] = useState([]);
   const [timestamp, setTimestamp] = useState(() => getFormattedTimestamp());
   const [fitSettings, setFitSettings] = useState({});
+  const [photoScales, setPhotoScales] = useState({}); // { [index]: { x: 1, y: 1 } }
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [frame, setFrame] = useState(frames[0]);
   const [audioOn, setAudioOn] = useState(false);
@@ -181,6 +182,8 @@ export default function App() {
           captured={captured}
           fitSettings={fitSettings}
           setFitSettings={setFitSettings}
+          photoScales={photoScales}
+          setPhotoScales={setPhotoScales}
           timestamp={timestamp}
           mode={mode}
           onShuffle={handleShuffle}

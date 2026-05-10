@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import './styles.css';
 import { generateShuffleDecorations, triggerMagicFlashOnStrip } from './utils/shuffleDecorations.js';
+import { renderExport } from './utils/exportCanvas.js';
 
 const asset = (name) => new URL(`../assets/${name}`, import.meta.url).href;
 
@@ -170,6 +171,7 @@ function App() {
   const [flashOn, setFlashOn] = useState(true);
   const [flashFire, setFlashFire] = useState(false);
   const [isBoothOpen, setBoothOpen] = useState(false);
+  const [resultImage, setResultImage] = useState(null);
   const [decorations, setDecorations] = useState([]);
   const [activeDecoId, setActiveDecoId] = useState(null);
   const [doodlePaths, setDoodlePaths] = useState([]);
@@ -649,7 +651,7 @@ function StripEditor(props) {
   const handleAddText = () => {
     const newId = Date.now().toString();
     const randomBg = ['#ff5aaf', '#00ffcc', '#ffcc00', '#cc00ff', '#111111', '#ff4444', '#44aaff'][Math.floor(Math.random() * 7)];
-    setDecorations([...decorations, { id: newId, type: 'text', content: 'New Text', x: 50, y: 50, rotation: 0, scale: 1, font: 'Pacifico', color: accentColor, bgColor: randomBg, showBg: false }]);
+    setDecorations([...decorations, { id: newId, type: 'text', content: 'New Text', x: 50, y: 50, rotation: 0, scaleX: 1, scaleY: 1, font: 'Pacifico', color: accentColor, bgColor: randomBg, showBg: false }]);
     setActiveDecoId(newId);
   };
 
@@ -657,7 +659,7 @@ function StripEditor(props) {
     const newId = Date.now().toString();
     const isImg = stickerContent.endsWith('.png');
     const randomBg = ['#ff5aaf', '#00ffcc', '#ffcc00', '#cc00ff', '#111111', '#ff4444', '#44aaff'][Math.floor(Math.random() * 7)];
-    setDecorations([...decorations, { id: newId, type: 'sticker', content: stickerContent, isImage: isImg, x: 50, y: 50, rotation: 0, scale: 1, bgColor: randomBg, showBg: !isImg }]);
+    setDecorations([...decorations, { id: newId, type: 'sticker', content: stickerContent, isImage: isImg, x: 50, y: 50, rotation: 0, scaleX: 1, scaleY: 1, bgColor: randomBg, showBg: !isImg }]);
     setActiveDecoId(newId);
   };
 
@@ -768,7 +770,7 @@ function StripEditor(props) {
                     <button onClick={() => setActiveDecoId(null)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}>Deselect</button>
                   </div>
                 </div>
-                <Slider label="Size" value={Math.round(activeDeco.scale * 100)} setValue={(v) => updateActiveDeco({ scale: v / 100 })} min={10} max={300} />
+                <Slider label="Size" value={Math.round((activeDeco.scaleX ?? 1) * 100)} setValue={(v) => updateActiveDeco({ scaleX: v / 100, scaleY: v / 100 })} min={10} max={300} />
                 <Slider label="Rotate" value={activeDeco.rotation} setValue={(v) => updateActiveDeco({ rotation: v })} min={-180} max={180} />
                 <div style={{ display: 'flex', gap: '12px', marginTop: '12px', alignItems: 'center' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer', color: 'var(--fg)' }}>
@@ -916,15 +918,64 @@ function MemoryLab(props) {
 
   const exportCanvas = async (type) => {
     setDeveloping(type);
-    await new Promise((resolve) => window.setTimeout(resolve, 1350));
-    if (type === 'png' || type === 'jpg') {
-      const canvas = await renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette, fitSettings, photoScales, timestamp });
-      const link = document.createElement('a');
-      link.download = `memorie-${frame.id}.${type === 'png' ? 'png' : 'jpg'}`;
-      link.href = canvas.toDataURL(type === 'png' ? 'image/png' : 'image/jpeg', 0.92);
-      link.click();
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, 1350));
+      if (type === 'png' || type === 'jpg') {
+        const canvas = await renderExport({ 
+          frame, 
+          photos, 
+          filter, 
+          accent, 
+          decorations, 
+          doodlePaths, 
+          zoom, 
+          rotation, 
+          vignette, 
+          fitSettings, 
+          photoScales, 
+          timestamp 
+        });
+
+        // Use toBlob instead of toDataURL to prevent "Download Failed" errors on large images
+        try {
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              alert('Could not generate image. The export might be too large for your browser.');
+              setDeveloping(null);
+              return;
+            }
+            const url = URL.createObjectURL(blob);
+            
+            // MOBILE FIX: On mobile, browsers often block direct downloads from blobs
+            // Instead, we show the image in a modal so they can long-press to save
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            if (isMobile) {
+              setResultImage(url);
+              setDeveloping(null);
+              return;
+            }
+
+            const link = document.createElement('a');
+            link.download = `memorie-${frame.id}.${type === 'png' ? 'png' : 'jpg'}`;
+            link.href = url;
+            link.click();
+            setTimeout(() => {
+              URL.revokeObjectURL(url);
+              setDeveloping(null);
+            }, 250);
+          }, type === 'png' ? 'image/png' : 'image/jpeg', 0.92);
+        } catch (blobErr) {
+          console.error('toBlob failed:', blobErr);
+          alert('Canvas export failed. Try reducing the number of stickers.');
+          setDeveloping(null);
+        }
+        return; // Exit early as toBlob is async and handles setDeveloping(null)
+      }
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Download failed. One of the assets might have failed to load or the export is too complex.');
+      setDeveloping(null);
     }
-    setDeveloping(null);
   };
 
   return (
@@ -985,6 +1036,41 @@ function MemoryLab(props) {
             <button>X</button>
             <button>URL</button>
           </div>
+          {/* Mobile Result Preview */}
+          <AnimatePresence>
+            {resultImage && (
+              <motion.div 
+                className="mobile-result-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => {
+                  URL.revokeObjectURL(resultImage);
+                  setResultImage(null);
+                }}
+              >
+                <div className="mobile-result-content" onClick={e => e.stopPropagation()}>
+                  <div className="mobile-result-header">
+                    <h3>Save your Memory</h3>
+                    <p>Long press the image to save it to your photos</p>
+                  </div>
+                  <div className="result-img-container">
+                    <img src={resultImage} alt="Your photobooth strip" />
+                  </div>
+                  <button 
+                    className="close-result"
+                    onClick={() => {
+                      URL.revokeObjectURL(resultImage);
+                      setResultImage(null);
+                    }}
+                  >
+                    Done
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <AnimatePresence>{developing && <DevelopingOverlay type={developing} />}</AnimatePresence>
         </div>
 
@@ -1207,8 +1293,8 @@ function DecoHandles({ deco, setDecorations, elementRef, hideDelete = false }) {
 
     const startX = e.clientX;
     const startY = e.clientY;
-    const startScaleX = deco.scaleX || deco.scale || 1;
-    const startScaleY = deco.scaleY || deco.scale || 1;
+    const startScaleX = deco.scaleX ?? 1;
+    const startScaleY = deco.scaleY ?? 1;
 
     const onMove = (moveEvent) => {
       if (axis === 'both' || axis === 'x') {
@@ -1216,14 +1302,14 @@ function DecoHandles({ deco, setDecorations, elementRef, hideDelete = false }) {
         const startDistX = Math.abs(startX - centerX);
         const ratioX = distX / startDistX;
         const newScaleX = Math.max(0.1, startScaleX * ratioX);
-        setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scaleX: newScaleX, scale: undefined } : d));
+        setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scaleX: newScaleX } : d));
       }
       if (axis === 'both' || axis === 'y') {
         const distY = Math.abs(moveEvent.clientY - centerY);
         const startDistY = Math.abs(startY - centerY);
         const ratioY = distY / startDistY;
         const newScaleY = Math.max(0.1, startScaleY * ratioY);
-        setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scaleY: newScaleY, scale: undefined } : d));
+        setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scaleY: newScaleY } : d));
       }
     };
     const onUp = (upEvent) => {
@@ -1267,32 +1353,38 @@ function DecoHandles({ deco, setDecorations, elementRef, hideDelete = false }) {
     setDecorations(prev => prev.filter(d => d.id !== deco.id));
   };
 
+  const invScaleX = 1 / (deco.scaleX || 1);
+  const invScaleY = 1 / (deco.scaleY || 1);
+  const handleStyle = {
+    transform: `scale(${invScaleX}, ${invScaleY})`,
+  };
+
   return (
     <>
       {!hideDelete && (
-        <div className="deco-handle delete-handle" data-tip="Remove" onPointerDown={handleDelete}>
+        <div className="deco-handle delete-handle" style={handleStyle} data-tip="Remove" onPointerDown={handleDelete}>
           <Trash2 size={11} />
         </div>
       )}
-      <div className="deco-handle rotate-handle" data-tip="Rotate" onPointerDown={handleRotate}>
+      <div className="deco-handle rotate-handle" style={handleStyle} data-tip="Rotate" onPointerDown={handleRotate}>
         <RotateCw size={13} />
       </div>
 
       {/* Uniform Scale Corners */}
-      <div className="deco-handle resize-handle" data-tip="Scale" onPointerDown={(e) => handleResize(e, 'both')}>
+      <div className="deco-handle resize-handle" style={handleStyle} data-tip="Scale" onPointerDown={(e) => handleResize(e, 'both')}>
         <Sparkles size={13} />
       </div>
 
       {/* Stretch Handles */}
-      <div className="stretch-handle stretch-h stretch-left" onPointerDown={(e) => handleResize(e, 'x')} />
-      <div className="stretch-handle stretch-h stretch-right" onPointerDown={(e) => handleResize(e, 'x')} />
-      <div className="stretch-handle stretch-v stretch-top" onPointerDown={(e) => handleResize(e, 'y')} />
-      <div className="stretch-handle stretch-v stretch-bottom" onPointerDown={(e) => handleResize(e, 'y')} />
+      <div className="stretch-handle stretch-h stretch-left" style={{ ...handleStyle, height: '60%', top: '20%' }} onPointerDown={(e) => handleResize(e, 'x')} />
+      <div className="stretch-handle stretch-h stretch-right" style={{ ...handleStyle, height: '60%', top: '20%' }} onPointerDown={(e) => handleResize(e, 'x')} />
+      <div className="stretch-handle stretch-v stretch-top" style={{ ...handleStyle, width: '60%', left: '20%' }} onPointerDown={(e) => handleResize(e, 'y')} />
+      <div className="stretch-handle stretch-v stretch-bottom" style={{ ...handleStyle, width: '60%', left: '20%' }} onPointerDown={(e) => handleResize(e, 'y')} />
 
-      <div className="deco-corner top-left" />
-      <div className="deco-corner top-right" />
-      <div className="deco-corner bottom-left" />
-      <div className="deco-corner bottom-right" />
+      <div className="deco-corner top-left" style={handleStyle} />
+      <div className="deco-corner top-right" style={handleStyle} />
+      <div className="deco-corner bottom-left" style={handleStyle} />
+      <div className="deco-corner bottom-right" style={handleStyle} />
     </>
   );
 }
@@ -1359,8 +1451,8 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
     left: `${deco.x}%`,
     x: '-50%',
     y: '-50%',
-    scaleX: deco.scaleX || deco.scale || 1,
-    scaleY: deco.scaleY || deco.scale || 1,
+    scaleX: deco.scaleX ?? 1,
+    scaleY: deco.scaleY ?? 1,
     rotate: deco.rotation,
     zIndex: isActive ? 24 : 12,
     cursor: 'grab',
@@ -1377,7 +1469,7 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
         ref={elementRef}
         style={{ ...style, color: deco.color, fontFamily: deco.font, boxShadow: 'none', textShadow: '0 2px 8px rgba(0,0,0,0.1)', ...bgStyle }}
         onPointerDown={handlePointerDown}
-        whileTap={{ scale: (deco.scale || 1) * 1.05 }}
+        whileTap={{ scale: 1.05 }}
         transition={{ type: 'tween', duration: 0 }}
       >
         {deco.content}
@@ -1392,7 +1484,7 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
         ref={elementRef}
         style={{ ...style, ...bgStyle, color: deco.showBg !== false ? '#fff' : 'inherit' }}
         onPointerDown={handlePointerDown}
-        whileTap={{ scale: (deco.scale || 1) * 1.05 }}
+        whileTap={{ scale: 1.05 }}
         transition={{ type: 'tween', duration: 0 }}
       >
         {deco.isImage ? <img src={asset(deco.content)} alt="" style={{ width: 100, display: 'block', pointerEvents: 'none' }} draggable="false" /> : deco.content}
@@ -1533,247 +1625,7 @@ function Footer() {
   );
 }
 
-async function renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette, fitSettings, photoScales, timestamp }) {
-  const baseW = 900;
-  // Match CSS columns: magazine, chrome, and camera frames use a 2-column grid
-  const columns = (frame.id === 'magazine' || frame.id === 'chrome' || frame.id === 'camera') ? 2 : 1;
-  const gap = 36;
-  const margin = 80;
-  const topPadding = 110;
-  const bottomPadding = 150;
 
-  const slotW = columns === 2 ? (baseW - margin * 2 - gap) / 2 : baseW - margin * 2;
-  // Standard 4:3 ratio (0.75) for photos
-  const slotH = slotW * 0.75;
-
-  const rows = Math.ceil(photos.length / columns);
-  // Calculate baseH dynamically based on rows to ensure all photos fit perfectly
-  const baseH = topPadding + bottomPadding + (gap * (rows - 1)) + (slotH * rows);
-
-  // Calculate bounds including photostrip (0,0 to baseW,baseH) and all decorations
-  let minX = 0;
-  let minY = 0;
-  let maxX = baseW;
-  let maxY = baseH;
-
-  if (decorations) {
-    decorations.forEach(deco => {
-      const dx = (deco.x / 100) * baseW;
-      const dy = (deco.y / 100) * baseH;
-      // Approximate size for bounds (200px buffer)
-      const buffer = 200 * deco.scale;
-      minX = Math.min(minX, dx - buffer);
-      minY = Math.min(minY, dy - buffer);
-      maxX = Math.max(maxX, dx + buffer);
-      maxY = Math.max(maxY, dy + buffer);
-    });
-  }
-
-  // Add a bit of extra padding
-  const padding = 60;
-  minX -= padding;
-  minY -= padding;
-  maxX += padding;
-  maxY += padding;
-
-  const canvas = document.createElement('canvas');
-  canvas.width = maxX - minX;
-  canvas.height = maxY - minY;
-  const ctx = canvas.getContext('2d');
-
-  ctx.save();
-  ctx.translate(-minX, -minY);
-
-  // Draw a soft drop shadow for the whole strip if it's expanded
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.15)';
-  ctx.shadowBlur = 40;
-  ctx.shadowOffsetY = 20;
-  ctx.fillStyle = frame.id === 'chrome' || frame.id === 'camera' ? '#d6d4cc' : frame.id === 'doodle' ? '#111' : '#f7eee6';
-  ctx.fillRect(0, 0, baseW, baseH);
-  ctx.restore();
-
-  // Accent header
-  ctx.fillStyle = accent;
-  ctx.globalAlpha = 0.22;
-  ctx.fillRect(0, 0, baseW, 70);
-  ctx.globalAlpha = 1;
-
-  for (let index = 0; index < photos.length; index += 1) {
-    const img = await loadImage(photos[index]);
-    const col = columns === 2 ? index % 2 : 0;
-    const row = columns === 2 ? Math.floor(index / 2) : index;
-    const x = margin + col * (slotW + gap);
-    const y = 110 + row * (slotH + gap);
-    ctx.save();
-    ctx.translate(x + slotW / 2, y + slotH / 2);
-    ctx.rotate((rotation + (index % 2 ? 1.5 : -1.2)) * Math.PI / 180);
-    ctx.fillStyle = '#151515';
-    ctx.shadowColor = 'rgba(0,0,0,.3)';
-    ctx.shadowBlur = 30;
-    ctx.shadowOffsetY = 15;
-    const pScale = photoScales?.[index] || { x: 1, y: 1 };
-    ctx.scale(pScale.x, pScale.y);
-    ctx.fillRect(-slotW / 2 - 10, -slotH / 2 - 10, slotW + 20, slotH + 20);
-    ctx.shadowColor = 'transparent';
-    ctx.filter = filter.css;
-
-    const fit = fitSettings?.[index] || 'cover';
-    if (fit === 'contain') {
-      const sW = img.width;
-      const sH = img.height;
-      const r = Math.min(slotW / sW, slotH / sH);
-      const dw = sW * r;
-      const dh = sH * r;
-      ctx.drawImage(img, -dw / 2, -dh / 2, dw, dh);
-    } else {
-      drawCover(ctx, img, -slotW / 2, -slotH / 2, slotW, slotH, zoom);
-    }
-
-    ctx.filter = 'none';
-    ctx.restore();
-  }
-
-  const gradient = ctx.createRadialGradient(baseW / 2, baseH / 2, 80, baseW / 2, baseH / 2, baseW / 1.15);
-  gradient.addColorStop(0, 'rgba(255,255,255,0)');
-  gradient.addColorStop(1, `rgba(0,0,0,${vignette / 180})`);
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, baseW, baseH);
-  ctx.font = '700 54px Georgia';
-  ctx.fillStyle = frame.id === 'doodle' ? '#f5f0e7' : '#141414';
-  ctx.fillText('memorie+', 58, baseH - 88);
-  ctx.font = '24px monospace';
-  ctx.fillStyle = frame.id === 'doodle' ? '#f5f0e7' : '#252525';
-  ctx.fillText(`${timestamp.time}  ${timestamp.date}`, baseW - 390, baseH - 54);
-
-  const canvasScale = baseW / 380;
-
-  if (decorations) {
-    for (const deco of decorations) {
-      const baseFontSize = (deco.isSmall ? 10 : 13) * canvasScale;
-      const sX = deco.scaleX || deco.scale || 1;
-      const sY = deco.scaleY || deco.scale || 1;
-      const fontSize = baseFontSize;
-
-      if (deco.type === 'text') {
-        ctx.save();
-        ctx.translate((deco.x / 100) * baseW, (deco.y / 100) * baseH);
-        ctx.rotate((deco.rotation * Math.PI) / 180);
-        ctx.scale(sX, sY);
-
-        ctx.font = `900 ${fontSize}px ${deco.font || 'Inter'}, sans-serif`;
-        if (deco.showBg !== false) {
-          ctx.fillStyle = deco.bgColor || '#ff5aaf';
-          const textWidth = ctx.measureText(deco.content).width;
-          const h = fontSize * 1.5;
-          const w = textWidth + (fontSize * 1.2);
-          ctx.beginPath();
-          ctx.roundRect(-w / 2, -h / 2, w, h, h / 2);
-          ctx.fill();
-        }
-
-        ctx.fillStyle = deco.color || '#fff';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(deco.content, 0, 0);
-        ctx.restore();
-      } else if (deco.type === 'sticker') {
-        ctx.save();
-        ctx.translate((deco.x / 100) * baseW, (deco.y / 100) * baseH);
-        ctx.rotate((deco.rotation * Math.PI) / 180);
-        if (deco.isImage) {
-          const sImg = await loadImage(asset(deco.content));
-          const w = 100 * sX * canvasScale;
-          const h = (sImg.height / sImg.width) * (100 * sY * canvasScale);
-          if (deco.showBg !== false) {
-            ctx.fillStyle = deco.bgColor || '#ff5aaf';
-            const bgPadding = 12 * Math.max(sX, sY) * canvasScale;
-            ctx.beginPath();
-            ctx.roundRect(-w / 2 - bgPadding, -h / 2 - bgPadding, w + bgPadding * 2, h + bgPadding * 2, bgPadding);
-            ctx.fill();
-          }
-          ctx.drawImage(sImg, -w / 2, -h / 2, w, h);
-        } else {
-          const bubbleFontSize = fontSize;
-          ctx.font = `900 ${bubbleFontSize}px Fraunces, serif`;
-          if (deco.showBg !== false) {
-            ctx.fillStyle = deco.bgColor || '#ff5aaf';
-            const textWidth = ctx.measureText(deco.content).width;
-            const h = bubbleFontSize * 1.5;
-            const w = textWidth + (bubbleFontSize * 1.2);
-            ctx.beginPath();
-            ctx.roundRect(-w / 2, -h / 2, w, h, h / 2);
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-          } else {
-            ctx.fillStyle = deco.isChrome ? '#111' : '#4e1534';
-          }
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(deco.content, 0, 0);
-        }
-        ctx.restore();
-      }
-    }
-  }
-
-  // Draw Doodles
-  if (doodlePaths && doodlePaths.length > 0) {
-    doodlePaths.forEach(path => {
-      if (path.points.length < 2) return;
-      ctx.beginPath();
-      ctx.strokeStyle = path.color;
-      ctx.lineWidth = path.size;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      if (path.shadow) {
-        ctx.shadowBlur = path.shadow;
-        ctx.shadowColor = path.color;
-      }
-
-      ctx.moveTo(path.points[0].x, path.points[0].y);
-      for (let i = 1; i < path.points.length; i++) {
-        ctx.lineTo(path.points[i].x, path.points[i].y);
-      }
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-    });
-  }
-
-  ctx.restore();
-  return canvas;
-}
-
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-    image.onload = () => resolve(image);
-    image.onerror = reject;
-    image.src = src;
-  });
-}
-
-function drawCover(ctx, image, x, y, width, height, zoom = 1) {
-  const sourceRatio = image.width / image.height;
-  const targetRatio = width / height;
-  let sx = 0;
-  let sy = 0;
-  let sw = image.width;
-  let sh = image.height;
-  if (sourceRatio > targetRatio) {
-    sw = image.height * targetRatio;
-    sx = (image.width - sw) / 2;
-  } else {
-    sh = image.width / targetRatio;
-    sy = (image.height - sh) / 2;
-  }
-  const z = Math.max(0.7, zoom);
-  const zw = width * z;
-  const zh = height * z;
-  ctx.drawImage(image, sx, sy, sw, sh, x - (zw - width) / 2, y - (zh - height) / 2, zw, zh);
-}
 
 function FeedbackOverlay({ onClose, ownerEmail }) {
   const [status, setStatus] = useState('idle'); // idle, sending, success

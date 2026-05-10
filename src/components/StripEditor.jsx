@@ -46,7 +46,7 @@ function StripEditorComponent(props) {
   const handleAddText = useCallback(() => {
     const newId = Date.now().toString();
     const randomBg = ['#ff5aaf', '#00ffcc', '#ffcc00', '#cc00ff', '#111111', '#ff4444', '#44aaff'][Math.floor(Math.random() * 7)];
-    setDecorations([...decorations, { id: newId, type: 'text', content: 'New Text', x: 50, y: 50, rotation: 0, scale: 1, font: 'Pacifico', color: accentColor, bgColor: randomBg, showBg: false }]);
+    setDecorations([...decorations, { id: newId, type: 'text', content: 'New Text', x: 50, y: 50, rotation: 0, scaleX: 1, scaleY: 1, font: 'Inter', color: '#ffffff', bgColor: 'transparent', showBg: false }]);
     setActiveDecoId(newId);
   }, [accentColor, decorations, setActiveDecoId, setDecorations]);
 
@@ -54,7 +54,7 @@ function StripEditorComponent(props) {
     const newId = Date.now().toString();
     const isImg = stickerContent.endsWith('.png');
     const randomBg = ['#ff5aaf', '#00ffcc', '#ffcc00', '#cc00ff', '#111111', '#ff4444', '#44aaff'][Math.floor(Math.random() * 7)];
-    setDecorations([...decorations, { id: newId, type: 'sticker', content: stickerContent, isImage: isImg, x: 50, y: 50, rotation: 0, scale: 1, bgColor: randomBg, showBg: !isImg }]);
+    setDecorations([...decorations, { id: newId, type: 'sticker', content: stickerContent, isImage: isImg, x: 50, y: 50, rotation: 0, scale: 1, scaleX: 1, scaleY: 1, bgColor: randomBg, showBg: !isImg }]);
     setActiveDecoId(newId);
   }, [decorations, setActiveDecoId, setDecorations]);
 
@@ -185,7 +185,7 @@ function StripEditorComponent(props) {
                     <button type="button" onClick={deselectDeco} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontWeight: 600 }}>Deselect</button>
                   </div>
                 </div>
-                <Slider label="Size" value={Math.round(activeDeco.scale * 100)} setValue={(v) => updateActiveDeco({ scale: v / 100 })} min={10} max={300} />
+                <Slider label="Size" value={Math.round((activeDeco.scaleX || 1) * 100)} setValue={(v) => updateActiveDeco({ scaleX: v / 100, scaleY: v / 100 })} min={10} max={300} />
                 <Slider label="Rotate" value={activeDeco.rotation} setValue={(v) => updateActiveDeco({ rotation: v })} min={-180} max={180} />
                 <div style={{ display: 'flex', gap: '12px', marginTop: '12px', alignItems: 'center' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer', color: 'var(--fg)' }}>

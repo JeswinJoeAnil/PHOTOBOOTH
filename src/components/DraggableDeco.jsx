@@ -61,7 +61,8 @@ export function DraggableDeco({ deco, setDecorations, isActive, onPointerDown })
     left: `${deco.x}%`,
     x: '-50%',
     y: '-50%',
-    scale: deco.scale ?? 1,
+    scaleX: deco.scaleX ?? 1,
+    scaleY: deco.scaleY ?? 1,
     rotate: deco.rotation,
     zIndex: isActive ? 24 : 12,
     cursor: 'grab',
@@ -78,7 +79,7 @@ export function DraggableDeco({ deco, setDecorations, isActive, onPointerDown })
         ref={elementRef}
         style={{ ...style, color: deco.color, fontFamily: deco.font, boxShadow: 'none', textShadow: '0 2px 8px rgba(0,0,0,0.1)', ...bgStyle }}
         onPointerDown={handlePointerDown}
-        whileTap={{ scale: (deco.scale ?? 1) * 1.05 }}
+        whileTap={{ scale: 1.05 }}
         transition={{ type: 'tween', duration: 0 }}
       >
         {deco.content}

@@ -1,4 +1,4 @@
-export const asset = (name) => new URL(`../assets/${name}`, import.meta.url).href;
+export const asset = (name) => new URL(`../../assets/${name}`, import.meta.url).href;
 
 export const ASSETS = {
   scrapbook: asset('XLuTGjgtwjWtugfWBkwiLVHNF71_iX5xma4L6mxdq-VImioPV2fqq4TAkvueyEqg1IiNDI35_HvKV8KjpR__xK8UhB74W3ut-1GHsNKK_jjzet8cIi0KKKpYMK6JwdUllaTIG5MwrWg6y-XIFC-9moOd-NQkY-OGnp_zsu63kdSsIdoJ7u7KZ_dzygamVTPX.jpg'),

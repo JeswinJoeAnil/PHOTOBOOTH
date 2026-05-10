@@ -1,9 +1,36 @@
-import React, { memo } from 'react';
+import React, { memo, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { DecoHandles } from './DecoHandles.jsx';
 
-function DraggablePhotoComponent({ photo, filter, index, zoom, rotation, fitMode }) {
+function DraggablePhotoComponent({ 
+  photo, 
+  filter, 
+  index, 
+  zoom, 
+  rotation, 
+  fitMode, 
+  scale = { x: 1, y: 1 }, 
+  onScale, 
+  isActive, 
+  onPointerDown 
+}) {
+  const elementRef = useRef(null);
+  
   return (
-    <motion.div className="photo-slot" drag dragMomentum={false} whileDrag={{ scale: 1.035, zIndex: 5 }} style={{ rotate: rotation + (index % 2 ? 1.5 : -1.2) }}>
+    <motion.div
+      ref={elementRef}
+      className={`photo-slot ${isActive ? 'active-deco' : ''}`}
+      drag
+      dragMomentum={false}
+      onPointerDown={onPointerDown}
+      whileDrag={{ scale: 1.035, zIndex: 5 }}
+      style={{
+        rotate: rotation + (index % 2 ? 1.5 : -1.2),
+        scaleX: scale.x,
+        scaleY: scale.y,
+        zIndex: isActive ? 10 : 1
+      }}
+    >
       <img
         src={photo}
         style={{
@@ -11,10 +38,25 @@ function DraggablePhotoComponent({ photo, filter, index, zoom, rotation, fitMode
           transform: `scale(${zoom})`,
           objectFit: fitMode === 'contain' ? 'contain' : 'cover',
           background: '#000',
+          pointerEvents: 'none'
         }}
         alt=""
       />
       <span>{String(index + 1).padStart(2, '0')}</span>
+      {isActive && (
+        <DecoHandles
+          deco={{ id: `photo-${index}`, scaleX: scale.x, scaleY: scale.y, rotation: 0 }}
+          setDecorations={(updater) => {
+            // Mock deco array update for photo scaling
+            const mockPrev = [{ id: `photo-${index}`, scaleX: scale.x, scaleY: scale.y, rotation: 0 }];
+            const result = typeof updater === 'function' ? updater(mockPrev) : updater;
+            const updated = result.find(d => d.id === `photo-${index}`);
+            if (updated) onScale?.({ x: updated.scaleX, y: updated.scaleY });
+          }}
+          elementRef={elementRef}
+          hideDelete
+        />
+      )}
     </motion.div>
   );
 }

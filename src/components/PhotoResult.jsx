@@ -21,6 +21,8 @@ function PhotoResultComponent({
   vignette,
   fitSettings,
   timestamp,
+  photoScales,
+  setPhotoScales,
 }) {
   const wrapperRef = useRef(null);
   const stripRef = useRef(null);
@@ -71,11 +73,21 @@ function PhotoResultComponent({
         onClick={onStripBackdropClick}
       >
         <div className="result-meta">{timestamp.time} / {timestamp.date}</div>
-        <div className="photo-slots" onClick={onPhotoSlotsClick}>
-          {photos.map((photo, index) => (
-            <DraggablePhoto key={`${photo}-${index}`} photo={photo} filter={filter} index={index} zoom={zoom} rotation={rotation} fitMode={fitSettings?.[index]} />
+           {photos.map((photo, index) => (
+            <DraggablePhoto 
+              key={`${photo}-${index}`} 
+              photo={photo} 
+              filter={filter} 
+              index={index} 
+              zoom={zoom} 
+              rotation={rotation} 
+              fitMode={fitSettings?.[index]} 
+              scale={photoScales?.[index] || { x: 1, y: 1 }}
+              onScale={(newScale) => setPhotoScales?.(prev => ({ ...prev, [index]: newScale }))}
+              isActive={activeDecoId === `photo-${index}`}
+              onPointerDown={() => setActiveDecoId?.(`photo-${index}`)}
+            />
           ))}
-        </div>
 
         <DoodleCanvas stripTab={stripTab} doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths} doodleBrush={doodleBrush} />
 

@@ -43,34 +43,53 @@ function MemoryLabComponent(props) {
     timestamp,
     mode,
     onShuffle,
+    photoScales,
+    setPhotoScales,
   } = props;
 
   const exportRef = useRef(null);
 
   const exportCanvas = useCallback(async (type) => {
     setDeveloping(type);
-    await new Promise((resolve) => window.setTimeout(resolve, 1350));
-    if (type === 'png' || type === 'jpg') {
-      const canvas = await renderExport({
-        frame,
-        photos,
-        filter,
-        accent,
-        decorations,
-        doodlePaths,
-        zoom,
-        rotation,
-        vignette,
-        fitSettings,
-        timestamp,
-      });
-      const link = document.createElement('a');
-      link.download = `memorie-${frame.id}.${type === 'png' ? 'png' : 'jpg'}`;
-      link.href = canvas.toDataURL(type === 'png' ? 'image/png' : 'image/jpeg', 0.92);
-      link.click();
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, 1350));
+      if (type === 'png' || type === 'jpg') {
+        const canvas = await renderExport({
+          frame,
+          photos,
+          filter,
+          accent,
+          decorations,
+          doodlePaths,
+          zoom,
+          rotation,
+          vignette,
+          fitSettings,
+          photoScales,
+          timestamp,
+        });
+
+        // Use toBlob instead of toDataURL to prevent "Download Failed" errors on large images
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            alert('Could not generate image. Please try again.');
+            return;
+          }
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.download = `memorie-${frame.id}.${type === 'png' ? 'png' : 'jpg'}`;
+          link.href = url;
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+        }, type === 'png' ? 'image/png' : 'image/jpeg', 0.92);
+      }
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Download failed. One of the assets might have failed to load.');
+    } finally {
+      setDeveloping(null);
     }
-    setDeveloping(null);
-  }, [accent, decorations, doodlePaths, filter, fitSettings, frame, photos, rotation, setDeveloping, timestamp, vignette, zoom]);
+  }, [accent, decorations, doodlePaths, filter, fitSettings, frame, photos, photoScales, rotation, setDeveloping, timestamp, vignette, zoom]);
 
   return (
     <section id="memory-lab" className="memory-lab">
@@ -100,6 +119,8 @@ function MemoryLabComponent(props) {
           rotation={rotation}
           vignette={vignette}
           fitSettings={fitSettings}
+          photoScales={photoScales}
+          setPhotoScales={setPhotoScales}
           timestamp={timestamp}
         />
       </div>
