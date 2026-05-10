@@ -205,7 +205,7 @@ function App() {
     setFrame(randomFrame);
 
     const randomFilter = filters[Math.floor(Math.random() * filters.length)];
-    setSelectedFilter(randomFilter);
+    setActiveFilter(randomFilter);
 
     const accents = ['#ff5aaf', '#5ac8ff', '#b45aff', '#5aff8c', '#ffea5a', '#111111'];
     setAccent(accents[Math.floor(Math.random() * accents.length)]);
@@ -291,6 +291,8 @@ function App() {
           photoScales={photoScales} setPhotoScales={setPhotoScales}
           mode={mode}
           onShuffle={handleShuffle}
+          resultImage={resultImage}
+          setResultImage={setResultImage}
         />
       </section>
       <Footer />
@@ -913,6 +915,7 @@ function MemoryLab(props) {
     fitSettings, setFitSettings, photoScales, setPhotoScales, timestamp,
     mode,
     onShuffle,
+    resultImage, setResultImage,
   } = props;
   const exportRef = useRef(null);
 
