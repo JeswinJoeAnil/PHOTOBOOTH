@@ -99,6 +99,11 @@ const frames = [
   { id: 'camera', name: 'Camera Frame', tone: 'camera', description: 'Photos placed directly inside a retro digicam body.' },
 ];
 
+const MAGIC_WORDS = [
+  "CUTE", "Y2K", "VIBES", "STAR", "QUEEN", "ANGEL", "LOVE", 
+  "COOL", "BABY", "1999", "SWEET", "DREAM", "MAGIC", "GLOW"
+];
+
 const stickers = ['good vibes', 'Y2K', '2004', 'no bad days', 'xoxo', 'iconic', 'lovely day', 'PM 04:23', 'sticker1.png', 'sticker2_1.png', 'sticker2_2.png', 'sticker2_3.png', 'sticker2_4.png', 'sticker2_5.png', 'sticker2_6.png', 'sticker2_7.png', 'sticker2_8.png', 'sticker2_9.png', 'sticker2_10.png', 'sticker2_11.png', 'sticker2_12.png', 'sticker2_13.png', 'sticker2_14.png', 'sticker2_15.png', 'sticker2_16.png', 'sticker2_17.png', 'sticker2_18.png', 'sticker2_19.png', 'sticker2_20.png', 'sticker2_21.png', 'sticker2_22.png', 'sticker2_23.png', 'sticker2_24.png', 'sticker2_25.png', 'sticker2_26.png', 'sticker2_27.png', 'sticker2_28.png', 'sticker2_29.png', 'sticker2_30.png', 'sticker2_31.png', 'sticker2_32.png', 'sticker2_33.png', 'sticker2_34.png', 'sticker2_35.png', 'sticker2_36.png', 'sticker2_37.png', 'sticker2_38.png', 'sticker2_39.png', 'sticker2_40.png', 'stickers3_1.png', 'stickers3_2.png', 'stickers3_3.png', 'stickers3_4.png', 'stickers3_5.png', 'stickers3_6.png', 'stickers3_7.png', 'stickers3_8.png', 'stickers3_9.png', 'stickers3_10.png', 'stickers3_11.png', 'stickers3_12.png', 'stickers3_13.png', 'stickers3_14.png', 'stickers3_15.png', 'stickers3_16.png', 'stickers3_17.png', 'stickers3_18.png', 'stickers3_19.png', 'stickers3_20.png', 'stickers3_21.png', 'stickers3_22.png', 'stickers3_23.png', 'stickers3_24.png', 'stickers3_25.png', 'stickers3_26.png', 'stickers3_27.png', 'stickers3_28.png', 'stickers3_29.png', 'stickers3_30.png', 'stickers3_31.png', 'stickers3_32.png', 'stickers3_33.png', 'stickers3_34.png', 'stickers3_35.png', 'stickers3_36.png', 'stickers3_37.png', 'stickers3_38.png', 'stickers3_39.png', 'stickers3_40.png', 'stickers3_41.png', 'stickers3_42.png', 'stickers3_43.png', 'stickers3_44.png', 'stickers3_45.png', 'stickers3_46.png', 'stickers3_47.png', 'stickers3_48.png', 'stickers3_49.png', 'stickers3_50.png', 'stickers3_51.png', 'stickers3_52.png', 'stickers3_53.png', 'stickers3_54.png', 'stickers3_55.png', 'stickers3_56.png', 'stickers3_57.png', 'stickers3_58.png', 'stickers3_59.png', 'stickers3_60.png', 'sticker4_1.png'];
 
 const getFormattedTimestamp = () => {
@@ -108,12 +113,12 @@ const getFormattedTimestamp = () => {
   const ampm = hours >= 12 ? 'PM' : 'AM';
   const displayHours = hours % 12 || 12;
   const displayMinutes = minutes < 10 ? `0${minutes}` : minutes;
-  
+
   const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
   const month = months[date.getMonth()];
   const day = date.getDate();
   const year = date.getFullYear();
-  
+
   return {
     time: `${ampm} ${displayHours}:${displayMinutes}`,
     date: `${month}. ${day} ${year}`
@@ -129,6 +134,7 @@ function App() {
     setTimestamp(getFormattedTimestamp());
   };
   const [fitSettings, setFitSettings] = useState({}); // { [index]: 'cover' | 'contain' }
+  const [photoScales, setPhotoScales] = useState({}); // { [index]: { x: 1, y: 1 } }
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [frame, setFrame] = useState(frames[0]);
   const [audioOn, setAudioOn] = useState(false);
@@ -189,6 +195,54 @@ function App() {
   const selectedFilter = {
     ...activeFilter,
     css: `${activeFilter.css} contrast(${1 + grain / 420}) brightness(${1 + lightLeak / 600})`,
+  };
+
+  const handleShuffle = () => {
+    // 1. Pick random Frame & Filter
+    const randomFrame = frames[Math.floor(Math.random() * frames.length)];
+    setFrame(randomFrame);
+    
+    const randomFilter = filters[Math.floor(Math.random() * filters.length)];
+    setSelectedFilter(randomFilter);
+
+    // 2. Pick random Accent Color
+    const accents = ['#ff5aaf', '#5ac8ff', '#b45aff', '#5aff8c', '#ffea5a', '#111111'];
+    const chosenAccent = accents[Math.floor(Math.random() * accents.length)];
+    setAccent(chosenAccent);
+
+    // 3. Generate 5-8 Random Image Stickers
+    // Filter the stickers array to only get image filenames (ending in .png)
+    const imageStickers = stickers.filter(s => s.endsWith('.png'));
+    
+    const newDecos = [];
+    const count = 5 + Math.floor(Math.random() * 4);
+    
+    for (let i = 0; i < count; i++) {
+      const id = Math.random().toString(36).substr(2, 9);
+      const assetId = imageStickers[Math.floor(Math.random() * imageStickers.length)];
+      
+      newDecos.push({
+        id,
+        type: 'sticker',
+        content: assetId,
+        x: 10 + Math.random() * 80, // Allow wider range
+        y: 5 + Math.random() * 90,  // Allow fuller coverage
+        scale: 0.8 + Math.random() * 1.2,
+        rotation: -45 + Math.random() * 90,
+        isImage: true,
+        showBg: Math.random() > 0.4, // Some have backgrounds for that "sticker" look
+        bgColor: accents[Math.floor(Math.random() * accents.length)]
+      });
+    }
+    setDecorations(newDecos);
+    
+    // Trigger visual feedback
+    const strip = document.querySelector('.result-strip');
+    if (strip) {
+      strip.classList.remove('magic-flash');
+      void strip.offsetWidth; // trigger reflow
+      strip.classList.add('magic-flash');
+    }
   };
 
   return (
@@ -264,6 +318,8 @@ function App() {
           timestamp={timestamp}
           captured={captured}
           fitSettings={fitSettings} setFitSettings={setFitSettings}
+          photoScales={photoScales} setPhotoScales={setPhotoScales}
+          onShuffle={handleShuffle}
         />
       </section>
       <Footer />
@@ -875,7 +931,8 @@ function MemoryLab(props) {
     doodlePaths, setDoodlePaths, doodleBrush, setDoodleBrush,
     developing, setDeveloping, zoom, setZoom, rotation, setRotation, vignette,
     stripTab, setStripTab, accentColor, setAccentColor, captured,
-    fitSettings, setFitSettings, timestamp
+    fitSettings, setFitSettings, photoScales, setPhotoScales, timestamp,
+    onShuffle
   } = props;
   const exportRef = useRef(null);
 
@@ -883,7 +940,7 @@ function MemoryLab(props) {
     setDeveloping(type);
     await new Promise((resolve) => window.setTimeout(resolve, 1350));
     if (type === 'png' || type === 'jpg') {
-      const canvas = await renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette, fitSettings, timestamp });
+      const canvas = await renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette, fitSettings, photoScales, timestamp });
       const link = document.createElement('a');
       link.download = `memorie-${frame.id}.${type === 'png' ? 'png' : 'jpg'}`;
       link.href = canvas.toDataURL(type === 'png' ? 'image/png' : 'image/jpeg', 0.92);
@@ -894,6 +951,12 @@ function MemoryLab(props) {
 
   return (
     <section id="memory-lab" className="memory-lab">
+      <div className="lab-header">
+        <button className="magic-btn" onClick={onShuffle}>
+          <span className="sparkle-icon">✦</span>
+          MAGIC SHUFFLE
+        </button>
+      </div>
       <div className="result-wrap" ref={exportRef}>
         <PhotoResult
           frame={frame} photos={photos} filter={filter} accent={accent}
@@ -903,6 +966,8 @@ function MemoryLab(props) {
           stripTab={stripTab}
           zoom={zoom} rotation={rotation} vignette={vignette}
           fitSettings={fitSettings}
+          photoScales={photoScales}
+          setPhotoScales={setPhotoScales}
           timestamp={timestamp}
         />
       </div>
@@ -960,7 +1025,7 @@ function MemoryLab(props) {
   );
 }
 
-function PhotoResult({ frame, photos, filter, accent, decorations, setDecorations, activeDecoId, setActiveDecoId, doodlePaths, setDoodlePaths, doodleBrush, stripTab, zoom, rotation, vignette, fitSettings, timestamp }) {
+function PhotoResult({ frame, photos, filter, accent, decorations, setDecorations, activeDecoId, setActiveDecoId, doodlePaths, setDoodlePaths, doodleBrush, stripTab, zoom, rotation, vignette, fitSettings, photoScales, setPhotoScales, timestamp }) {
   const wrapperRef = useRef(null);
   const stripRef = useRef(null);
   const [scale, setScale] = useState(1);
@@ -1005,7 +1070,19 @@ function PhotoResult({ frame, photos, filter, accent, decorations, setDecoration
         <div className="result-meta">{timestamp.time} / {timestamp.date}</div>
         <div className="photo-slots" onClick={() => setActiveDecoId(null)}>
           {photos.map((photo, index) => (
-            <DraggablePhoto key={`${photo}-${index}`} photo={photo} filter={filter} index={index} zoom={zoom} rotation={rotation} fitMode={fitSettings?.[index]} />
+            <DraggablePhoto
+              key={`${photo}-${index}`}
+              photo={photo}
+              filter={filter}
+              index={index}
+              zoom={zoom}
+              rotation={rotation}
+              fitMode={fitSettings?.[index]}
+              scale={photoScales?.[index] || { x: 1, y: 1 }}
+              onScale={(newScale) => setPhotoScales(prev => ({ ...prev, [index]: newScale }))}
+              isActive={activeDecoId === `photo-${index}`}
+              onPointerDown={() => setActiveDecoId(`photo-${index}`)}
+            />
           ))}
         </div>
 
@@ -1080,26 +1157,54 @@ function DoodleCanvas({ stripTab, doodlePaths, setDoodlePaths, doodleBrush }) {
   );
 }
 
-function DraggablePhoto({ photo, filter, index, zoom, rotation, fitMode }) {
+function DraggablePhoto({ photo, filter, index, zoom, rotation, fitMode, scale, onScale, isActive, onPointerDown }) {
+  const elementRef = useRef(null);
   return (
-    <motion.div className="photo-slot" drag dragMomentum={false} whileDrag={{ scale: 1.035, zIndex: 5 }} style={{ rotate: rotation + (index % 2 ? 1.5 : -1.2) }}>
+    <motion.div
+      ref={elementRef}
+      className={`photo-slot ${isActive ? 'active-deco' : ''}`}
+      drag
+      dragMomentum={false}
+      onPointerDown={onPointerDown}
+      whileDrag={{ scale: 1.035, zIndex: 5 }}
+      style={{
+        rotate: rotation + (index % 2 ? 1.5 : -1.2),
+        scaleX: scale.x,
+        scaleY: scale.y,
+        zIndex: isActive ? 10 : 1
+      }}
+    >
       <img
         src={photo}
         style={{
           filter: filter.css,
           transform: `scale(${zoom})`,
           objectFit: fitMode === 'contain' ? 'contain' : 'cover',
-          background: '#000'
+          background: '#000',
+          pointerEvents: 'none'
         }}
         alt=""
       />
       <span>{String(index + 1).padStart(2, '0')}</span>
+      {isActive && (
+        <DecoHandles
+          deco={{ id: `photo-${index}`, scaleX: scale.x, scaleY: scale.y, rotation: 0 }}
+          setDecorations={(updater) => {
+            const mockPrev = [{ id: `photo-${index}`, scaleX: scale.x, scaleY: scale.y, rotation: 0 }];
+            const result = typeof updater === 'function' ? updater(mockPrev) : updater;
+            const updated = result.find(d => d.id === `photo-${index}`);
+            if (updated) onScale({ x: updated.scaleX, y: updated.scaleY });
+          }}
+          elementRef={elementRef}
+          hideDelete
+        />
+      )}
     </motion.div>
   );
 }
 
-function DecoHandles({ deco, setDecorations, elementRef }) {
-  const handleResize = (e) => {
+function DecoHandles({ deco, setDecorations, elementRef, hideDelete = false }) {
+  const handleResize = (e, axis = 'both') => {
     e.stopPropagation();
     const target = e.currentTarget;
     target.setPointerCapture(e.pointerId);
@@ -1107,14 +1212,27 @@ function DecoHandles({ deco, setDecorations, elementRef }) {
     const rect = elementRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    const startDist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
-    const startScale = deco.scale;
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startScaleX = deco.scaleX || deco.scale || 1;
+    const startScaleY = deco.scaleY || deco.scale || 1;
 
     const onMove = (moveEvent) => {
-      const currentDist = Math.hypot(moveEvent.clientX - centerX, moveEvent.clientY - centerY);
-      const ratio = currentDist / startDist;
-      const newScale = Math.max(0.2, startScale * ratio);
-      setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scale: newScale } : d));
+      if (axis === 'both' || axis === 'x') {
+        const distX = Math.abs(moveEvent.clientX - centerX);
+        const startDistX = Math.abs(startX - centerX);
+        const ratioX = distX / startDistX;
+        const newScaleX = Math.max(0.1, startScaleX * ratioX);
+        setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scaleX: newScaleX, scale: undefined } : d));
+      }
+      if (axis === 'both' || axis === 'y') {
+        const distY = Math.abs(moveEvent.clientY - centerY);
+        const startDistY = Math.abs(startY - centerY);
+        const ratioY = distY / startDistY;
+        const newScaleY = Math.max(0.1, startScaleY * ratioY);
+        setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scaleY: newScaleY, scale: undefined } : d));
+      }
     };
     const onUp = (upEvent) => {
       target.releasePointerCapture(upEvent.pointerId);
@@ -1159,18 +1277,26 @@ function DecoHandles({ deco, setDecorations, elementRef }) {
 
   return (
     <>
-      {/* ── Functional handles ── */}
-      <div className="deco-handle delete-handle" data-tip="Remove" onPointerDown={handleDelete}>
-        <Trash2 size={11} />
-      </div>
+      {!hideDelete && (
+        <div className="deco-handle delete-handle" data-tip="Remove" onPointerDown={handleDelete}>
+          <Trash2 size={11} />
+        </div>
+      )}
       <div className="deco-handle rotate-handle" data-tip="Rotate" onPointerDown={handleRotate}>
         <RotateCw size={13} />
       </div>
-      <div className="deco-handle resize-handle" data-tip="Resize" onPointerDown={handleResize}>
+
+      {/* Uniform Scale Corners */}
+      <div className="deco-handle resize-handle" data-tip="Scale" onPointerDown={(e) => handleResize(e, 'both')}>
         <Sparkles size={13} />
       </div>
 
-      {/* ── Corner dots ── */}
+      {/* Stretch Handles */}
+      <div className="stretch-handle stretch-h stretch-left" onPointerDown={(e) => handleResize(e, 'x')} />
+      <div className="stretch-handle stretch-h stretch-right" onPointerDown={(e) => handleResize(e, 'x')} />
+      <div className="stretch-handle stretch-v stretch-top" onPointerDown={(e) => handleResize(e, 'y')} />
+      <div className="stretch-handle stretch-v stretch-bottom" onPointerDown={(e) => handleResize(e, 'y')} />
+
       <div className="deco-corner top-left" />
       <div className="deco-corner top-right" />
       <div className="deco-corner bottom-left" />
@@ -1241,7 +1367,8 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
     left: `${deco.x}%`,
     x: '-50%',
     y: '-50%',
-    scale: deco.scale,
+    scaleX: deco.scaleX || deco.scale || 1,
+    scaleY: deco.scaleY || deco.scale || 1,
     rotate: deco.rotation,
     zIndex: isActive ? 20 : 10,
     cursor: 'grab',
@@ -1258,7 +1385,7 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
         ref={elementRef}
         style={{ ...style, color: deco.color, fontFamily: deco.font, boxShadow: 'none', textShadow: '0 2px 8px rgba(0,0,0,0.1)', ...bgStyle }}
         onPointerDown={handlePointerDown}
-        whileTap={{ scale: deco.scale * 1.05 }}
+        whileTap={{ scale: (deco.scale || 1) * 1.05 }}
         transition={{ type: 'tween', duration: 0 }}
       >
         {deco.content}
@@ -1273,7 +1400,7 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
         ref={elementRef}
         style={{ ...style, ...bgStyle, color: deco.showBg !== false ? '#fff' : 'inherit' }}
         onPointerDown={handlePointerDown}
-        whileTap={{ scale: deco.scale * 1.05 }}
+        whileTap={{ scale: (deco.scale || 1) * 1.05 }}
         transition={{ type: 'tween', duration: 0 }}
       >
         {deco.isImage ? <img src={asset(deco.content)} alt="" style={{ width: 100, display: 'block', pointerEvents: 'none' }} draggable="false" /> : deco.content}
@@ -1414,7 +1541,7 @@ function Footer() {
   );
 }
 
-async function renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette, fitSettings, timestamp }) {
+async function renderExport({ frame, photos, filter, accent, decorations, doodlePaths, zoom, rotation, vignette, fitSettings, photoScales, timestamp }) {
   const baseW = 900;
   // Match CSS columns: magazine, chrome, and camera frames use a 2-column grid
   const columns = (frame.id === 'magazine' || frame.id === 'chrome' || frame.id === 'camera') ? 2 : 1;
@@ -1493,6 +1620,8 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
     ctx.shadowColor = 'rgba(0,0,0,.3)';
     ctx.shadowBlur = 30;
     ctx.shadowOffsetY = 15;
+    const pScale = photoScales?.[index] || { x: 1, y: 1 };
+    ctx.scale(pScale.x, pScale.y);
     ctx.fillRect(-slotW / 2 - 10, -slotH / 2 - 10, slotW + 20, slotH + 20);
     ctx.shadowColor = 'transparent';
     ctx.filter = filter.css;
@@ -1530,12 +1659,15 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
   if (decorations) {
     for (const deco of decorations) {
       const baseFontSize = (deco.isSmall ? 10 : 13) * canvasScale;
-      const fontSize = baseFontSize * deco.scale;
+      const sX = deco.scaleX || deco.scale || 1;
+      const sY = deco.scaleY || deco.scale || 1;
+      const fontSize = baseFontSize;
 
       if (deco.type === 'text') {
         ctx.save();
         ctx.translate((deco.x / 100) * baseW, (deco.y / 100) * baseH);
         ctx.rotate((deco.rotation * Math.PI) / 180);
+        ctx.scale(sX, sY);
 
         ctx.font = `900 ${fontSize}px ${deco.font || 'Inter'}, sans-serif`;
         if (deco.showBg !== false) {
@@ -1559,11 +1691,11 @@ async function renderExport({ frame, photos, filter, accent, decorations, doodle
         ctx.rotate((deco.rotation * Math.PI) / 180);
         if (deco.isImage) {
           const sImg = await loadImage(asset(deco.content));
-          const w = 100 * deco.scale * canvasScale;
-          const h = (sImg.height / sImg.width) * w;
+          const w = 100 * sX * canvasScale;
+          const h = (sImg.height / sImg.width) * (100 * sY * canvasScale);
           if (deco.showBg !== false) {
             ctx.fillStyle = deco.bgColor || '#ff5aaf';
-            const bgPadding = 12 * deco.scale * canvasScale;
+            const bgPadding = 12 * Math.max(sX, sY) * canvasScale;
             ctx.beginPath();
             ctx.roundRect(-w / 2 - bgPadding, -h / 2 - bgPadding, w + bgPadding * 2, h + bgPadding * 2, bgPadding);
             ctx.fill();
