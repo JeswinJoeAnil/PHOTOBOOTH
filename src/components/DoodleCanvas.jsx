@@ -40,7 +40,18 @@ export function DoodleCanvas({ stripTab, doodlePaths, setDoodlePaths, doodleBrus
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 15, pointerEvents: stripTab === 'doodle' ? 'auto' : 'none', touchAction: 'none', cursor: stripTab === 'doodle' ? 'var(--cursor-crosshair)' : 'inherit' }}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        /* Below stickers when not doodling so PNG/text decos stay visible; above when drawing */
+        zIndex: stripTab === 'doodle' ? 26 : 4,
+        pointerEvents: stripTab === 'doodle' ? 'auto' : 'none',
+        touchAction: 'none',
+        cursor: stripTab === 'doodle' ? 'var(--cursor-crosshair)' : 'inherit',
+      }}
     >
       <svg width="100%" height="100%" viewBox={`0 0 900 ${viewHeight}`} style={{ overflow: 'visible' }}>
         {doodlePaths.map((path, i) => (

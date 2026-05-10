@@ -753,6 +753,29 @@ main {
   color: var(--hot);
 }
 
+.strip-shuffle-wand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 10px;
+  color: inherit;
+}
+
+.strip-shuffle-wand:hover {
+  opacity: 0.88;
+  transform: scale(1.06);
+}
+
+.strip-shuffle-wand:focus-visible {
+  outline: 2px solid var(--hot);
+  outline-offset: 2px;
+}
+
 .capture-layout {
   display: grid;
   grid-template-columns: 92px 1fr 112px;
@@ -1138,7 +1161,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
   padding: 12px;
 }
 
@@ -1583,12 +1606,14 @@ main {
   left: 4px;
   top: 12px;
   transform: rotate(-18deg);
+  z-index: 28;
 }
 
 .tape-b {
   right: 6px;
   bottom: 18px;
   transform: rotate(12deg);
+  z-index: 28;
 }
 
 .result-doodles {
@@ -1597,6 +1622,7 @@ main {
   top: 8px;
   font-size: 12px;
   color: var(--accent);
+  z-index: 28;
 }
 
 .frame-scrap.photo-result {
@@ -3212,4 +3238,56 @@ main {
   0% { filter: brightness(1); transform: scale(1); }
   10% { filter: brightness(3) saturate(1.5); transform: scale(1.02); box-shadow: 0 0 100px rgba(255, 255, 255, 0.8); }
   100% { filter: brightness(1); transform: scale(1); }
+}
+
+/* --- NEW PREMIUM TEMPLATES --- */
+.frame-cyber.photo-result {
+  background-color: #000080;
+  border: 4px solid #fff;
+  border-top-color: #dfdfdf;
+  border-left-color: #dfdfdf;
+  border-bottom-color: #808080;
+  border-right-color: #808080;
+}
+.frame-cyber .photo-slot {
+  border: 2px inset #dfdfdf;
+  background: #000;
+}
+.frame-cyber .result-meta {
+  font-family: 'Courier New', monospace;
+  background: #c0c0c0;
+  color: #000;
+  padding: 2px 8px;
+  border: 1px outset #fff;
+  font-size: 0.6rem;
+}
+
+.frame-neon.photo-result {
+  background-color: #050505;
+  box-shadow: inset 0 0 50px rgba(255, 0, 255, 0.2);
+}
+.frame-neon .photo-slot {
+  border: 1px solid rgba(0, 255, 255, 0.5);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+.frame-neon .result-meta {
+  color: #0ff;
+  text-shadow: 0 0 5px #0ff;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 2px;
+}
+
+.frame-dreamy.photo-result {
+  background-color: #fff0f5;
+  border: 8px solid #fff;
+}
+.frame-dreamy .photo-slot {
+  border-radius: 40px;
+  overflow: hidden;
+  border: 4px solid #fff;
+}
+.frame-dreamy .result-meta {
+  font-family: 'Dancing Script', cursive;
+  color: #ff69b4;
+  font-size: 0.9rem;
 }

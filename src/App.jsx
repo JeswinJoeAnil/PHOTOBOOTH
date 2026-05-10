@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ASSETS, PRELOAD_IMAGE_URLS, assetPhotos, filters, frames } from './constants/assets.js';
+import { ASSETS, PRELOAD_IMAGE_URLS, assetPhotos, filters, frames, stickers } from './constants/assets.js';
+import { generateShuffleDecorations, triggerMagicFlashOnStrip } from './utils/shuffleDecorations.js';
 import { getFormattedTimestamp } from './utils/timestamp.js';
 import { AmbientLayers } from './components/AmbientLayers.jsx';
 import { SiteChrome } from './components/SiteChrome.jsx';
@@ -85,6 +86,21 @@ export default function App() {
     document.querySelector('#booth')?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
+  const handleShuffle = useCallback(() => {
+    const randomFrame = frames[Math.floor(Math.random() * frames.length)];
+    setFrame(randomFrame);
+
+    const randomFilter = filters[Math.floor(Math.random() * filters.length)];
+    setActiveFilter(randomFilter);
+
+    const accents = ['#ff5aaf', '#5ac8ff', '#b45aff', '#5aff8c', '#ffea5a', '#111111'];
+    setAccent(accents[Math.floor(Math.random() * accents.length)]);
+
+    setDecorations(generateShuffleDecorations(stickers));
+    setActiveDecoId(null);
+    triggerMagicFlashOnStrip();
+  }, []);
+
   return (
     <main>
       <AmbientLayers />
@@ -167,6 +183,7 @@ export default function App() {
           setFitSettings={setFitSettings}
           timestamp={timestamp}
           mode={mode}
+          onShuffle={handleShuffle}
         />
       </section>
       <Footer />

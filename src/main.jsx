@@ -38,6 +38,7 @@ import {
   X
 } from 'lucide-react';
 import './styles.css';
+import { generateShuffleDecorations, triggerMagicFlashOnStrip } from './utils/shuffleDecorations.js';
 
 const asset = (name) => new URL(`../assets/${name}`, import.meta.url).href;
 
@@ -100,7 +101,7 @@ const frames = [
 ];
 
 const MAGIC_WORDS = [
-  "CUTE", "Y2K", "VIBES", "STAR", "QUEEN", "ANGEL", "LOVE", 
+  "CUTE", "Y2K", "VIBES", "STAR", "QUEEN", "ANGEL", "LOVE",
   "COOL", "BABY", "1999", "SWEET", "DREAM", "MAGIC", "GLOW"
 ];
 
@@ -198,51 +199,18 @@ function App() {
   };
 
   const handleShuffle = () => {
-    // 1. Pick random Frame & Filter
     const randomFrame = frames[Math.floor(Math.random() * frames.length)];
     setFrame(randomFrame);
-    
+
     const randomFilter = filters[Math.floor(Math.random() * filters.length)];
     setSelectedFilter(randomFilter);
 
-    // 2. Pick random Accent Color
     const accents = ['#ff5aaf', '#5ac8ff', '#b45aff', '#5aff8c', '#ffea5a', '#111111'];
-    const chosenAccent = accents[Math.floor(Math.random() * accents.length)];
-    setAccent(chosenAccent);
+    setAccent(accents[Math.floor(Math.random() * accents.length)]);
 
-    // 3. Generate 5-8 Random Image Stickers
-    // Filter the stickers array to only get image filenames (ending in .png)
-    const imageStickers = stickers.filter(s => s.endsWith('.png'));
-    
-    const newDecos = [];
-    const count = 5 + Math.floor(Math.random() * 4);
-    
-    for (let i = 0; i < count; i++) {
-      const id = Math.random().toString(36).substr(2, 9);
-      const assetId = imageStickers[Math.floor(Math.random() * imageStickers.length)];
-      
-      newDecos.push({
-        id,
-        type: 'sticker',
-        content: assetId,
-        x: 10 + Math.random() * 80, // Allow wider range
-        y: 5 + Math.random() * 90,  // Allow fuller coverage
-        scale: 0.8 + Math.random() * 1.2,
-        rotation: -45 + Math.random() * 90,
-        isImage: true,
-        showBg: Math.random() > 0.4, // Some have backgrounds for that "sticker" look
-        bgColor: accents[Math.floor(Math.random() * accents.length)]
-      });
-    }
-    setDecorations(newDecos);
-    
-    // Trigger visual feedback
-    const strip = document.querySelector('.result-strip');
-    if (strip) {
-      strip.classList.remove('magic-flash');
-      void strip.offsetWidth; // trigger reflow
-      strip.classList.add('magic-flash');
-    }
+    setDecorations(generateShuffleDecorations(stickers));
+    setActiveDecoId(null);
+    triggerMagicFlashOnStrip();
   };
 
   return (
@@ -319,6 +287,7 @@ function App() {
           captured={captured}
           fitSettings={fitSettings} setFitSettings={setFitSettings}
           photoScales={photoScales} setPhotoScales={setPhotoScales}
+          mode={mode}
           onShuffle={handleShuffle}
         />
       </section>
@@ -664,7 +633,8 @@ function StripEditor(props) {
     accentColor, setAccentColor, zoom, setZoom, rotation, setRotation,
     stripTab, setStripTab,
     fitSettings, setFitSettings,
-    mode
+    mode,
+    onShuffle,
   } = props;
 
   const tabs = [
@@ -700,7 +670,14 @@ function StripEditor(props) {
     <div className="strip-editor">
       <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Wand2 size={18} /><span>Edit Your Strip</span>
+          {onShuffle ? (
+            <button type="button" className="strip-shuffle-wand" onClick={onShuffle} aria-label="Magic shuffle" title="Magic shuffle">
+              <Wand2 size={18} />
+            </button>
+          ) : (
+            <Wand2 size={18} />
+          )}
+          <span>Edit Your Strip</span>
         </div>
         {decorations.length > 0 && (
           <button
@@ -932,7 +909,8 @@ function MemoryLab(props) {
     developing, setDeveloping, zoom, setZoom, rotation, setRotation, vignette,
     stripTab, setStripTab, accentColor, setAccentColor, captured,
     fitSettings, setFitSettings, photoScales, setPhotoScales, timestamp,
-    onShuffle
+    mode,
+    onShuffle,
   } = props;
   const exportRef = useRef(null);
 
@@ -984,6 +962,10 @@ function MemoryLab(props) {
         setRotation={setRotation}
         stripTab={stripTab}
         setStripTab={setStripTab}
+        fitSettings={fitSettings}
+        setFitSettings={setFitSettings}
+        mode={mode}
+        onShuffle={onShuffle}
       />
 
       <div className="memory-sidebar">
@@ -1088,7 +1070,7 @@ function PhotoResult({ frame, photos, filter, accent, decorations, setDecoration
 
         <DoodleCanvas stripTab={stripTab} doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths} doodleBrush={doodleBrush} />
 
-        <div className="decorations-layer" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 10 }}>
+        <div className="decorations-layer" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 22 }}>
           {decorations.map(deco => (
             <DraggableDeco key={`${deco.id}-${deco.dragKey || 0}`} deco={deco} setDecorations={setDecorations} isActive={activeDecoId === deco.id} onPointerDown={() => setActiveDecoId(deco.id)} />
           ))}
@@ -1143,7 +1125,17 @@ function DoodleCanvas({ stripTab, doodlePaths, setDoodlePaths, doodleBrush }) {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 15, pointerEvents: stripTab === 'doodle' ? 'auto' : 'none', touchAction: 'none', cursor: stripTab === 'doodle' ? 'var(--cursor-crosshair)' : 'inherit' }}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: stripTab === 'doodle' ? 26 : 4,
+        pointerEvents: stripTab === 'doodle' ? 'auto' : 'none',
+        touchAction: 'none',
+        cursor: stripTab === 'doodle' ? 'var(--cursor-crosshair)' : 'inherit',
+      }}
     >
       <svg width="100%" height="100%" viewBox={`0 0 900 ${viewHeight}`} style={{ overflow: 'visible' }}>
         {doodlePaths.map((path, i) => (
@@ -1370,7 +1362,7 @@ function DraggableDeco({ deco, setDecorations, isActive, onPointerDown }) {
     scaleX: deco.scaleX || deco.scale || 1,
     scaleY: deco.scaleY || deco.scale || 1,
     rotate: deco.rotation,
-    zIndex: isActive ? 20 : 10,
+    zIndex: isActive ? 24 : 12,
     cursor: 'grab',
     pointerEvents: 'auto',
   };
@@ -1783,7 +1775,6 @@ function drawCover(ctx, image, x, y, width, height, zoom = 1) {
   ctx.drawImage(image, sx, sy, sw, sh, x - (zw - width) / 2, y - (zh - height) / 2, zw, zh);
 }
 
-createRoot(document.getElementById('root')).render(<App />);
 function FeedbackOverlay({ onClose, ownerEmail }) {
   const [status, setStatus] = useState('idle'); // idle, sending, success
   const [msg, setMsg] = useState('');

@@ -42,6 +42,7 @@ function MemoryLabComponent(props) {
     setFitSettings,
     timestamp,
     mode,
+    onShuffle,
   } = props;
 
   const exportRef = useRef(null);
@@ -73,6 +74,14 @@ function MemoryLabComponent(props) {
 
   return (
     <section id="memory-lab" className="memory-lab">
+      {onShuffle && (
+        <div className="lab-header">
+          <button type="button" className="magic-btn" onClick={onShuffle}>
+            <span className="sparkle-icon">✦</span>
+            MAGIC SHUFFLE
+          </button>
+        </div>
+      )}
       <div className="result-wrap" ref={exportRef}>
         <PhotoResult
           frame={frame}
@@ -114,6 +123,7 @@ function MemoryLabComponent(props) {
         fitSettings={fitSettings}
         setFitSettings={setFitSettings}
         mode={mode}
+        onShuffle={onShuffle}
       />
 
       <div className="memory-sidebar">

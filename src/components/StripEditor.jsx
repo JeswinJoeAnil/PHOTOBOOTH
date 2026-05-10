@@ -31,6 +31,7 @@ function StripEditorComponent(props) {
     fitSettings,
     setFitSettings,
     mode,
+    onShuffle,
   } = props;
 
   const tabs = [
@@ -88,7 +89,14 @@ function StripEditorComponent(props) {
     <div className="strip-editor">
       <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Wand2 size={18} /><span>Edit Your Strip</span>
+          {onShuffle ? (
+            <button type="button" className="strip-shuffle-wand" onClick={onShuffle} aria-label="Magic shuffle" title="Magic shuffle">
+              <Wand2 size={18} />
+            </button>
+          ) : (
+            <Wand2 size={18} />
+          )}
+          <span>Edit Your Strip</span>
         </div>
         {decorations.length > 0 && (
           <button

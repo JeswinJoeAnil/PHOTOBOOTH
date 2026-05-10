@@ -61,9 +61,9 @@ export function DraggableDeco({ deco, setDecorations, isActive, onPointerDown })
     left: `${deco.x}%`,
     x: '-50%',
     y: '-50%',
-    scale: deco.scale,
+    scale: deco.scale ?? 1,
     rotate: deco.rotation,
-    zIndex: isActive ? 20 : 10,
+    zIndex: isActive ? 24 : 12,
     cursor: 'grab',
     pointerEvents: 'auto',
   };
@@ -78,7 +78,7 @@ export function DraggableDeco({ deco, setDecorations, isActive, onPointerDown })
         ref={elementRef}
         style={{ ...style, color: deco.color, fontFamily: deco.font, boxShadow: 'none', textShadow: '0 2px 8px rgba(0,0,0,0.1)', ...bgStyle }}
         onPointerDown={handlePointerDown}
-        whileTap={{ scale: deco.scale * 1.05 }}
+        whileTap={{ scale: (deco.scale ?? 1) * 1.05 }}
         transition={{ type: 'tween', duration: 0 }}
       >
         {deco.content}
@@ -93,7 +93,7 @@ export function DraggableDeco({ deco, setDecorations, isActive, onPointerDown })
       ref={elementRef}
       style={{ ...style, ...bgStyle, color: deco.showBg !== false ? '#fff' : 'inherit' }}
       onPointerDown={handlePointerDown}
-      whileTap={{ scale: deco.scale * 1.05 }}
+      whileTap={{ scale: (deco.scale ?? 1) * 1.05 }}
       transition={{ type: 'tween', duration: 0 }}
     >
       {deco.isImage ? <img src={asset(deco.content)} alt="" style={{ width: 100, display: 'block', pointerEvents: 'none' }} draggable="false" /> : deco.content}
