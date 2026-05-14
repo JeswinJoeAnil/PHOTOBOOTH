@@ -32,52 +32,6 @@ export function DecoHandles({ deco, setDecorations, elementRef }) {
     target.addEventListener('pointerup', onUp);
   };
 
-  const handleStretch = (e, axis) => {
-    e.stopPropagation();
-    const target = e.currentTarget;
-    target.setPointerCapture(e.pointerId);
-
-    const rect = elementRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    
-    const angleRad = (deco.rotation || 0) * (Math.PI / 180);
-    
-    const getLocalDist = (clientX, clientY) => {
-      const dx = clientX - centerX;
-      const dy = clientY - centerY;
-      // Unrotate
-      const lx = dx * Math.cos(-angleRad) - dy * Math.sin(-angleRad);
-      const ly = dx * Math.sin(-angleRad) + dy * Math.cos(-angleRad);
-      return axis === 'x' ? Math.abs(lx) : Math.abs(ly);
-    };
-
-    const startDist = getLocalDist(e.clientX, e.clientY);
-    const startScaleX = deco.scaleX || 1;
-    const startScaleY = deco.scaleY || 1;
-
-    const onMove = (moveEvent) => {
-      const currentDist = getLocalDist(moveEvent.clientX, moveEvent.clientY);
-      const ratio = currentDist / Math.max(1, startDist);
-      
-      if (axis === 'x') {
-        const newScaleX = Math.max(0.05, startScaleX * ratio);
-        setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scaleX: newScaleX } : d));
-      } else {
-        const newScaleY = Math.max(0.05, startScaleY * ratio);
-        setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scaleY: newScaleY } : d));
-      }
-    };
-
-    const onUp = (upEvent) => {
-      target.releasePointerCapture(upEvent.pointerId);
-      target.removeEventListener('pointermove', onMove);
-      target.removeEventListener('pointerup', onUp);
-    };
-    target.addEventListener('pointermove', onMove);
-    target.addEventListener('pointerup', onUp);
-  };
-
   const handleRotate = (e) => {
     e.stopPropagation();
     const target = e.currentTarget;
@@ -126,12 +80,6 @@ export function DecoHandles({ deco, setDecorations, elementRef }) {
       <div className="deco-handle resize-handle" data-tip="Resize" onPointerDown={handleResize} style={invScale}>
         <Sparkles size={13} />
       </div>
-
-      {/* Side Stretch Handles (The Bars) */}
-      <div className="stretch-handle stretch-h stretch-left" onPointerDown={(e) => handleStretch(e, 'x')} style={invScale} />
-      <div className="stretch-handle stretch-h stretch-right" onPointerDown={(e) => handleStretch(e, 'x')} style={invScale} />
-      <div className="stretch-handle stretch-v stretch-top" onPointerDown={(e) => handleStretch(e, 'y')} style={invScale} />
-      <div className="stretch-handle stretch-v stretch-bottom" onPointerDown={(e) => handleStretch(e, 'y')} style={invScale} />
 
       {/* Corner Dots - also act as uniform resize handles */}
       <div className="deco-corner top-left" onPointerDown={handleResize} style={invScale} />

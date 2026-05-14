@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import {
   Aperture,
+  ArrowLeft,
   BatteryMedium,
   Camera,
   CassetteTape,
@@ -188,6 +189,10 @@ function App() {
   const [isFeedbackOpen, setFeedbackOpen] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
 
+  // ── Page navigation: 'capture' or 'editor' ──
+  const [currentPage, setCurrentPage] = useState('capture');
+  const prevCapturedLenRef = useRef(0);
+
   const stripPhotos = useMemo(() => {
     return Array.from({ length: mode }, (_, index) => {
       if (captured[index]) return captured[index];
@@ -215,87 +220,244 @@ function App() {
     triggerMagicFlashOnStrip();
   };
 
+  // Auto-navigate to editor when strip is full
+  useEffect(() => {
+    const wasGrowing = captured.length > prevCapturedLenRef.current;
+    const isFull = captured.length >= mode && captured.length > 0;
+    prevCapturedLenRef.current = captured.length;
+
+    if (isFull && wasGrowing && currentPage === 'capture') {
+      const t = setTimeout(() => {
+        setCurrentPage('editor');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 600);
+      return () => clearTimeout(t);
+    }
+  }, [captured.length, mode, currentPage]);
+
+  const goToEditor = () => {
+    setCurrentPage('editor');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goToCapture = () => {
+    setCurrentPage('capture');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <main>
       <AmbientLayers />
-      <Header
-        audioOn={audioOn}
-        toggleAudio={toggleAudio}
-        nextTrack={nextTrack}
-        onFeedbackOpen={() => setFeedbackOpen(true)}
-        onMenuOpen={() => setMenuOpen(true)}
-      />
       <audio
         ref={audioRef}
         src={ASSETS.playlist[trackIndex]}
         onEnded={nextTrack}
         crossOrigin="anonymous"
       />
-      <Hero
-        onStart={() => {
-          setBoothOpen(true);
-          document.querySelector('#booth')?.scrollIntoView({ behavior: 'smooth' });
-        }}
-        photos={stripPhotos}
-        filter={selectedFilter}
-        timestamp={timestamp}
-      />
-      <section id="booth" className="studio-grid">
-        <CameraBooth
-          isOpen={isBoothOpen}
-          setOpen={setBoothOpen}
-          mode={mode}
-          setMode={setMode}
-          timer={timer}
-          setTimer={setTimer}
-          activeFilter={selectedFilter}
-          captured={captured}
-          setCaptured={setCaptured}
-          timestamp={timestamp}
-          setTimestamp={setTimestamp}
-          flashOn={flashOn}
-          setFlashOn={setFlashOn}
-          flashFire={flashFire}
-          setFlashFire={setFlashFire}
-          mirrorOn={mirrorOn}
-          setMirrorOn={setMirrorOn}
-          onCapture={playShutter}
-        />
-        <CameraEditor
-          activeFilter={activeFilter}
-          setActiveFilter={setActiveFilter}
-          grain={grain}
-          setGrain={setGrain}
-          lightLeak={lightLeak}
-          setLightLeak={setLightLeak}
-          vignette={vignette}
-          setVignette={setVignette}
-          editorTab={editorTab}
-          setEditorTab={setEditorTab}
-        />
-      </section>
-      <TemplateRail frame={frame} setFrame={setFrame} photos={stripPhotos} filter={selectedFilter} accent={accent} />
-      <section id="memory" className="memory-lab-section">
-        <MemoryLab
-          frame={frame} photos={stripPhotos} filter={selectedFilter} accent={accent}
-          decorations={decorations} setDecorations={setDecorations}
-          activeDecoId={activeDecoId} setActiveDecoId={setActiveDecoId}
-          doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths}
-          doodleBrush={doodleBrush} setDoodleBrush={setDoodleBrush}
-          developing={developing} setDeveloping={setDeveloping}
-          zoom={zoom} setZoom={setZoom} rotation={rotation} setRotation={setRotation} vignette={vignette}
-          stripTab={stripTab} setStripTab={setStripTab} accentColor={accent} setAccentColor={setAccent}
-          timestamp={timestamp}
-          captured={captured}
-          fitSettings={fitSettings} setFitSettings={setFitSettings}
-          photoScales={photoScales} setPhotoScales={setPhotoScales}
-          mode={mode}
-          onShuffle={handleShuffle}
-          resultImage={resultImage}
-          setResultImage={setResultImage}
-        />
-      </section>
-      <Footer />
+
+      <AnimatePresence mode="wait">
+        {currentPage === 'capture' ? (
+          <motion.div
+            key="capture-page"
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ type: 'spring', stiffness: 80, damping: 18 }}
+          >
+            <Header
+              audioOn={audioOn}
+              toggleAudio={toggleAudio}
+              nextTrack={nextTrack}
+              onFeedbackOpen={() => setFeedbackOpen(true)}
+              onMenuOpen={() => setMenuOpen(true)}
+            />
+            <Hero
+              onStart={() => {
+                setBoothOpen(true);
+                document.querySelector('#booth')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              photos={stripPhotos}
+              filter={selectedFilter}
+              timestamp={timestamp}
+            />
+            <section id="booth" className="studio-grid">
+              <CameraBooth
+                isOpen={isBoothOpen}
+                setOpen={setBoothOpen}
+                mode={mode}
+                setMode={setMode}
+                timer={timer}
+                setTimer={setTimer}
+                activeFilter={selectedFilter}
+                captured={captured}
+                setCaptured={setCaptured}
+                timestamp={timestamp}
+                setTimestamp={setTimestamp}
+                flashOn={flashOn}
+                setFlashOn={setFlashOn}
+                flashFire={flashFire}
+                setFlashFire={setFlashFire}
+                mirrorOn={mirrorOn}
+                setMirrorOn={setMirrorOn}
+                onCapture={playShutter}
+              />
+              <CameraEditor
+                activeFilter={activeFilter}
+                setActiveFilter={setActiveFilter}
+                grain={grain}
+                setGrain={setGrain}
+                lightLeak={lightLeak}
+                setLightLeak={setLightLeak}
+                vignette={vignette}
+                setVignette={setVignette}
+                editorTab={editorTab}
+                setEditorTab={setEditorTab}
+              />
+            </section>
+            <TemplateRail frame={frame} setFrame={setFrame} photos={stripPhotos} filter={selectedFilter} accent={accent} />
+
+            {/* Sticky bar to jump to editor when photos exist */}
+            {captured.length > 0 && (
+              <motion.div
+                className="go-to-editor-bar"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <div className="editor-bar-inner">
+                  <div className="editor-bar-info">
+                    <span className="editor-bar-count">{captured.length}/{mode}</span>
+                    <span>photos captured</span>
+                  </div>
+                  <button type="button" className="editor-bar-btn" onClick={goToEditor}>
+                    Edit & Download →
+                  </button>
+                </div>
+              </motion.div>
+            )}
+            <Footer />
+          </motion.div>
+        ) : (
+          <div
+            key="editor-page"
+            className="editor-page"
+          >
+            {/* ── Editor Page Header ── */}
+            <header className="editor-page-header">
+              <button type="button" className="back-to-booth-btn" onClick={goToCapture}>
+                <ArrowLeft size={18} />
+                <span>Back to Booth</span>
+              </button>
+              <div className="editor-page-title">
+                <Sparkles size={16} />
+                <span>Edit & Download</span>
+              </div>
+              <button type="button" className="retake-btn" onClick={goToCapture}>
+                <Camera size={16} />
+                <span>Retake</span>
+              </button>
+            </header>
+
+            {/* ── Two-column editor layout ── */}
+            <div className="editor-split">
+              {/* LEFT: Large free-standing strip */}
+              <div className="editor-strip-col">
+                <div className="editor-strip-canvas">
+                  <PhotoResult
+                    frame={frame} photos={stripPhotos} filter={selectedFilter} accent={accent}
+                    decorations={decorations} setDecorations={setDecorations}
+                    activeDecoId={activeDecoId} setActiveDecoId={setActiveDecoId}
+                    doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths} doodleBrush={doodleBrush}
+                    stripTab={stripTab}
+                    zoom={zoom} rotation={rotation} vignette={vignette}
+                    fitSettings={fitSettings}
+                    photoScales={photoScales}
+                    setPhotoScales={setPhotoScales}
+                    timestamp={timestamp}
+                  />
+                </div>
+              </div>
+
+              {/* RIGHT: All editing controls */}
+              <div className="editor-controls-col">
+                {/* Magic Shuffle */}
+                <div className="editor-controls-card">
+                  <button className="magic-btn" onClick={handleShuffle}>
+                    <span className="sparkle-icon">✦</span>
+                    MAGIC SHUFFLE
+                  </button>
+                </div>
+
+                {/* Template Rail */}
+                <div className="editor-controls-card">
+                  <TemplateRail frame={frame} setFrame={setFrame} photos={stripPhotos} filter={selectedFilter} accent={accent} />
+                </div>
+
+                {/* Filter / Adjust */}
+                <div className="editor-controls-card">
+                  <CameraEditor
+                    activeFilter={activeFilter}
+                    setActiveFilter={setActiveFilter}
+                    grain={grain}
+                    setGrain={setGrain}
+                    lightLeak={lightLeak}
+                    setLightLeak={setLightLeak}
+                    vignette={vignette}
+                    setVignette={setVignette}
+                    editorTab={editorTab}
+                    setEditorTab={setEditorTab}
+                  />
+                </div>
+
+                {/* Strip Editor (Text / Stickers / Doodle / Layout) */}
+                <div className="editor-controls-card">
+                  <StripEditor
+                    decorations={decorations} setDecorations={setDecorations}
+                    activeDecoId={activeDecoId} setActiveDecoId={setActiveDecoId}
+                    doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths}
+                    doodleBrush={doodleBrush} setDoodleBrush={setDoodleBrush}
+                    accentColor={accent} setAccentColor={setAccent}
+                    zoom={zoom} setZoom={setZoom}
+                    rotation={rotation} setRotation={setRotation}
+                    stripTab={stripTab} setStripTab={setStripTab}
+                    fitSettings={fitSettings} setFitSettings={setFitSettings}
+                    mode={mode}
+                    onShuffle={handleShuffle}
+                  />
+                </div>
+
+                {/* Export Panel */}
+                <div className="editor-controls-card editor-export-card">
+                  <div className="paper-note">All set! <Sparkles size={16} /></div>
+                  <p>Export your memory</p>
+                  <MemoryLab
+                    frame={frame} photos={stripPhotos} filter={selectedFilter} accent={accent}
+                    decorations={decorations} setDecorations={setDecorations}
+                    activeDecoId={activeDecoId} setActiveDecoId={setActiveDecoId}
+                    doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths}
+                    doodleBrush={doodleBrush} setDoodleBrush={setDoodleBrush}
+                    developing={developing} setDeveloping={setDeveloping}
+                    zoom={zoom} setZoom={setZoom} rotation={rotation} setRotation={setRotation} vignette={vignette}
+                    stripTab={stripTab} setStripTab={setStripTab} accentColor={accent} setAccentColor={setAccent}
+                    timestamp={timestamp}
+                    captured={captured}
+                    fitSettings={fitSettings} setFitSettings={setFitSettings}
+                    photoScales={photoScales} setPhotoScales={setPhotoScales}
+                    mode={mode}
+                    onShuffle={handleShuffle}
+                    resultImage={resultImage}
+                    setResultImage={setResultImage}
+                    exportOnly
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Footer />
+          </div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {isFeedbackOpen && (
           <FeedbackOverlay
@@ -308,7 +470,8 @@ function App() {
           onClose={() => setMenuOpen(false)}
           onFeedbackOpen={() => setFeedbackOpen(true)}
         />
-        {flashFire && <motion.div className="flash" initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} exit={{ opacity: 0 }} transition={{ duration: 0.46 }} />}</AnimatePresence>
+        {flashFire && <motion.div className="flash" initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} exit={{ opacity: 0 }} transition={{ duration: 0.46 }} />}
+      </AnimatePresence>
     </main>
   );
 }
@@ -982,50 +1145,10 @@ function MemoryLab(props) {
   };
 
   return (
-    <section id="memory-lab" className="memory-lab">
-      <div className="lab-header">
-        <button className="magic-btn" onClick={onShuffle}>
-          <span className="sparkle-icon">✦</span>
-          MAGIC SHUFFLE
-        </button>
-      </div>
-      <div className="result-wrap" ref={exportRef}>
-        <PhotoResult
-          frame={frame} photos={photos} filter={filter} accent={accent}
-          decorations={decorations} setDecorations={setDecorations}
-          activeDecoId={activeDecoId} setActiveDecoId={setActiveDecoId}
-          doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths} doodleBrush={doodleBrush}
-          stripTab={stripTab}
-          zoom={zoom} rotation={rotation} vignette={vignette}
-          fitSettings={fitSettings}
-          photoScales={photoScales}
-          setPhotoScales={setPhotoScales}
-          timestamp={timestamp}
-        />
-      </div>
-
-      <StripEditor
-        decorations={decorations} setDecorations={setDecorations}
-        activeDecoId={activeDecoId} setActiveDecoId={setActiveDecoId}
-        doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths} doodleBrush={doodleBrush} setDoodleBrush={setDoodleBrush}
-        accentColor={accentColor}
-        setAccentColor={setAccentColor}
-        zoom={zoom}
-        setZoom={setZoom}
-        rotation={rotation}
-        setRotation={setRotation}
-        stripTab={stripTab}
-        setStripTab={setStripTab}
-        fitSettings={fitSettings}
-        setFitSettings={setFitSettings}
-        mode={mode}
-        onShuffle={onShuffle}
-      />
-
-      <div className="memory-sidebar">
-        <div id="export" className="export-panel">
-          <div className="paper-note">All set! <Sparkles size={16} /></div>
-          <p>Export your memory</p>
+    <>
+      {props.exportOnly ? (
+        /* Export-only mode: just the download buttons */
+        <>
           <div className="export-grid">
             <button onClick={() => exportCanvas('png')}><ImageIcon size={18} /> Photo Strip <span>PNG</span><Download size={16} /></button>
             <button onClick={() => exportCanvas('jpg')}><Grid2X2 size={18} /> Collage <span>JPG</span><Download size={16} /></button>
@@ -1039,7 +1162,6 @@ function MemoryLab(props) {
             <button>X</button>
             <button>URL</button>
           </div>
-          {/* Mobile Result Preview */}
           <AnimatePresence>
             {resultImage && (
               <motion.div 
@@ -1073,26 +1195,122 @@ function MemoryLab(props) {
               </motion.div>
             )}
           </AnimatePresence>
-
           <AnimatePresence>{developing && <DevelopingOverlay type={developing} />}</AnimatePresence>
-        </div>
-
-        <div className="memory-roll">
-          <div className="section-title"><Film size={16} /><span>Memory Roll</span></div>
-          <div className="roll-previews">
-            {captured && captured.slice(-4).reverse().map((img, i) => (
-              <div key={i} className="roll-item">
-                <img src={img} alt="" />
-                <button className="roll-dl"><Download size={12} /></button>
-              </div>
-            ))}
-            {(!captured || captured.length === 0) && (
-              <div className="roll-empty">Capture moments to fill your roll...</div>
-            )}
+        </>
+      ) : (
+        /* Full mode: original 3-column layout (legacy fallback) */
+        <section id="memory-lab" className="memory-lab">
+          <div className="lab-header">
+            <button className="magic-btn" onClick={onShuffle}>
+              <span className="sparkle-icon">✦</span>
+              MAGIC SHUFFLE
+            </button>
           </div>
-        </div>
-      </div>
-    </section>
+          <div className="result-wrap" ref={exportRef}>
+            <PhotoResult
+              frame={frame} photos={photos} filter={filter} accent={accent}
+              decorations={decorations} setDecorations={setDecorations}
+              activeDecoId={activeDecoId} setActiveDecoId={setActiveDecoId}
+              doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths} doodleBrush={doodleBrush}
+              stripTab={stripTab}
+              zoom={zoom} rotation={rotation} vignette={vignette}
+              fitSettings={fitSettings}
+              photoScales={photoScales}
+              setPhotoScales={setPhotoScales}
+              timestamp={timestamp}
+            />
+          </div>
+
+          <StripEditor
+            decorations={decorations} setDecorations={setDecorations}
+            activeDecoId={activeDecoId} setActiveDecoId={setActiveDecoId}
+            doodlePaths={doodlePaths} setDoodlePaths={setDoodlePaths} doodleBrush={doodleBrush} setDoodleBrush={setDoodleBrush}
+            accentColor={accentColor}
+            setAccentColor={setAccentColor}
+            zoom={zoom}
+            setZoom={setZoom}
+            rotation={rotation}
+            setRotation={setRotation}
+            stripTab={stripTab}
+            setStripTab={setStripTab}
+            fitSettings={fitSettings}
+            setFitSettings={setFitSettings}
+            mode={mode}
+            onShuffle={onShuffle}
+          />
+
+          <div className="memory-sidebar">
+            <div id="export" className="export-panel">
+              <div className="paper-note">All set! <Sparkles size={16} /></div>
+              <p>Export your memory</p>
+              <div className="export-grid">
+                <button onClick={() => exportCanvas('png')}><ImageIcon size={18} /> Photo Strip <span>PNG</span><Download size={16} /></button>
+                <button onClick={() => exportCanvas('jpg')}><Grid2X2 size={18} /> Collage <span>JPG</span><Download size={16} /></button>
+                <button onClick={() => exportCanvas('gif')}><Film size={18} /> Animated GIF <span>GIF</span><Download size={16} /></button>
+                <button onClick={() => exportCanvas('mp4')}><Video size={18} /> Video Reel <span>MP4</span><Download size={16} /></button>
+              </div>
+              <div className="share-row">
+                <span>Share to</span>
+                <button>IG</button>
+                <button>TT</button>
+                <button>X</button>
+                <button>URL</button>
+              </div>
+              <AnimatePresence>
+                {resultImage && (
+                  <motion.div 
+                    className="mobile-result-overlay"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => {
+                      URL.revokeObjectURL(resultImage);
+                      setResultImage(null);
+                    }}
+                  >
+                    <div className="mobile-result-content" onClick={e => e.stopPropagation()}>
+                      <div className="mobile-result-header">
+                        <h3>Save your Memory</h3>
+                        <p>Long press the image to save it to your photos</p>
+                      </div>
+                      <div className="result-img-container">
+                        <img src={resultImage} alt="Your photobooth strip" />
+                      </div>
+                      <button 
+                        className="close-result"
+                        onClick={() => {
+                          URL.revokeObjectURL(resultImage);
+                          setResultImage(null);
+                        }}
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>{developing && <DevelopingOverlay type={developing} />}</AnimatePresence>
+            </div>
+
+            <div className="memory-roll">
+              <div className="section-title"><Film size={16} /><span>Memory Roll</span></div>
+              <div className="roll-previews">
+                {captured && captured.slice(-4).reverse().map((img, i) => (
+                  <div key={i} className="roll-item">
+                    <img src={img} alt="" />
+                    <button className="roll-dl"><Download size={12} /></button>
+                  </div>
+                ))}
+                {(!captured || captured.length === 0) && (
+                  <div className="roll-empty">Capture moments to fill your roll...</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+    </>
   );
 }
 
@@ -1300,20 +1518,14 @@ function DecoHandles({ deco, setDecorations, elementRef, hideDelete = false }) {
     const startScaleY = deco.scaleY ?? 1;
 
     const onMove = (moveEvent) => {
-      if (axis === 'both' || axis === 'x') {
-        const distX = Math.abs(moveEvent.clientX - centerX);
-        const startDistX = Math.abs(startX - centerX);
-        const ratioX = distX / startDistX;
-        const newScaleX = Math.max(0.1, startScaleX * ratioX);
-        setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scaleX: newScaleX } : d));
-      }
-      if (axis === 'both' || axis === 'y') {
-        const distY = Math.abs(moveEvent.clientY - centerY);
-        const startDistY = Math.abs(startY - centerY);
-        const ratioY = distY / startDistY;
-        const newScaleY = Math.max(0.1, startScaleY * ratioY);
-        setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scaleY: newScaleY } : d));
-      }
+      const dist = Math.hypot(moveEvent.clientX - centerX, moveEvent.clientY - centerY);
+      const startDist = Math.hypot(startX - centerX, startY - centerY);
+      const ratio = dist / startDist;
+      
+      const newScaleX = Math.max(0.1, startScaleX * ratio);
+      const newScaleY = Math.max(0.1, startScaleY * ratio);
+      
+      setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scaleX: newScaleX, scaleY: newScaleY } : d));
     };
     const onUp = (upEvent) => {
       target.releasePointerCapture(upEvent.pointerId);
@@ -1377,12 +1589,6 @@ function DecoHandles({ deco, setDecorations, elementRef, hideDelete = false }) {
       <div className="deco-handle resize-handle" style={handleStyle} data-tip="Scale" onPointerDown={(e) => handleResize(e, 'both')}>
         <Sparkles size={13} />
       </div>
-
-      {/* Stretch Handles */}
-      <div className="stretch-handle stretch-h stretch-left" style={{ ...handleStyle, height: '60%', top: '20%' }} onPointerDown={(e) => handleResize(e, 'x')} />
-      <div className="stretch-handle stretch-h stretch-right" style={{ ...handleStyle, height: '60%', top: '20%' }} onPointerDown={(e) => handleResize(e, 'x')} />
-      <div className="stretch-handle stretch-v stretch-top" style={{ ...handleStyle, width: '60%', left: '20%' }} onPointerDown={(e) => handleResize(e, 'y')} />
-      <div className="stretch-handle stretch-v stretch-bottom" style={{ ...handleStyle, width: '60%', left: '20%' }} onPointerDown={(e) => handleResize(e, 'y')} />
 
       <div className="deco-corner top-left" style={handleStyle} />
       <div className="deco-corner top-right" style={handleStyle} />

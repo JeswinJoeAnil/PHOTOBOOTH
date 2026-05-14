@@ -1,2 +1,0 @@
-"  useEffect(() => {\n    const container = containerRef.current;\n    if (!container) return;\n\n    let pointer = {\n        x: .65,\n        y: .3,\n        clicked: true\n    };\n    let isStart = true;\n    let isRendering = !freeze;\n\n    let timer1
-<truncated 6097 bytes>
