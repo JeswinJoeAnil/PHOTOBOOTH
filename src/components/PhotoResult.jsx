@@ -23,6 +23,7 @@ function PhotoResultComponent({
   timestamp,
   photoScales,
   setPhotoScales,
+  stripBackground,
 }) {
   const wrapperRef = useRef(null);
   const stripRef = useRef(null);
@@ -64,6 +65,9 @@ function PhotoResultComponent({
         style={{
           '--accent': accent,
           '--vignette': `${vignette / 100}`,
+          background: stripBackground?.type === 'gradient'
+            ? `linear-gradient(180deg, ${stripBackground.from}, ${stripBackground.to})`
+            : (stripBackground?.value || ''),
           transform: `scale(${scale}) rotate(-1.5deg)`,
           transformOrigin: 'top center',
           marginBottom: scale < 1

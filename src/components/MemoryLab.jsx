@@ -45,6 +45,7 @@ function MemoryLabComponent(props) {
     onShuffle,
     photoScales,
     setPhotoScales,
+    stripBackground,
   } = props;
 
   const exportRef = useRef(null);
@@ -67,6 +68,7 @@ function MemoryLabComponent(props) {
           fitSettings,
           photoScales,
           timestamp,
+          stripBackground,
         });
 
         // Use toBlob instead of toDataURL to prevent "Download Failed" errors on large images
@@ -122,6 +124,7 @@ function MemoryLabComponent(props) {
           photoScales={photoScales}
           setPhotoScales={setPhotoScales}
           timestamp={timestamp}
+          stripBackground={stripBackground}
         />
       </div>
 

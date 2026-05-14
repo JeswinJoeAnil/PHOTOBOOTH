@@ -1,6 +1,7 @@
 import React, { memo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
+  Image as ImageIcon,
   Layout,
   MousePointer2,
   Sparkles,
@@ -8,7 +9,7 @@ import {
   Type,
   Wand2,
 } from 'lucide-react';
-import { asset, stickers } from '../constants/assets.js';
+import { asset, stickers, BACKGROUNDS } from '../constants/assets.js';
 import { Slider } from './Slider.jsx';
 
 function StripEditorComponent(props) {
@@ -32,12 +33,15 @@ function StripEditorComponent(props) {
     setFitSettings,
     mode,
     onShuffle,
+    stripBackground,
+    setStripBackground,
   } = props;
 
   const tabs = [
     { id: 'text', icon: Type, label: 'Text' },
     { id: 'stickers', icon: Sticker, label: 'Stickers' },
     { id: 'doodle', icon: MousePointer2, label: 'Doodle' },
+    { id: 'bg', icon: ImageIcon, label: 'Back' },
     { id: 'layout', icon: Layout, label: 'Layout' },
   ];
 
@@ -209,6 +213,27 @@ function StripEditorComponent(props) {
           </div>
         )}
 
+        {stripTab === 'bg' && (
+          <div className="bg-picker">
+            <p className="panel-hint">Choose a background for your photostrip</p>
+            <div className="bg-grid">
+              {BACKGROUNDS.map((bg) => (
+                <button
+                  key={bg.id}
+                  type="button"
+                  className={`bg-swatch ${stripBackground?.id === bg.id ? 'active' : ''}`}
+                  onClick={() => setStripBackground(bg)}
+                  title={bg.label}
+                  style={{
+                    background: bg.type === 'solid' ? bg.value : `linear-gradient(135deg, ${bg.from}, ${bg.to})`,
+                  }}
+                >
+                  <span className="bg-label">{bg.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {stripTab === 'layout' && (
           <motion.div className="layout-editor" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
             <p className="panel-hint" style={{ marginBottom: '16px' }}>

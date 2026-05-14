@@ -1,4 +1,5 @@
 import { asset } from '../constants/assets.js';
+import { applyPixelFilter } from './pixelFilters.js';
 
 /**
  * Renders the photostrip to a canvas for export.
@@ -16,7 +17,8 @@ export async function renderExport({
   vignette,
   fitSettings,
   photoScales,
-  timestamp
+  timestamp,
+  stripBackground
 }) {
   const baseW = 900;
   // Match CSS columns: magazine, chrome, and camera frames use a 2-column grid
@@ -64,7 +66,7 @@ export async function renderExport({
   // Mobile devices have strict limits (Max 3500px for safety)
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const MAX_DIM = isMobile ? 3500 : 8000;
-  
+
   let width = maxX - minX;
   let height = maxY - minY;
   let renderScale = 1;
@@ -91,7 +93,14 @@ export async function renderExport({
   ctx.shadowColor = 'rgba(0,0,0,0.15)';
   ctx.shadowBlur = 40;
   ctx.shadowOffsetY = 20;
-  ctx.fillStyle = (frame.id === 'chrome' || frame.id === 'camera') ? '#d6d4cc' : (frame.id === 'doodle' ? '#111' : '#f7eee6');
+  if (stripBackground?.type === 'gradient') {
+    const grad = ctx.createLinearGradient(0, 0, 0, baseH);
+    grad.addColorStop(0, stripBackground.from);
+    grad.addColorStop(1, stripBackground.to);
+    ctx.fillStyle = grad;
+  } else {
+    ctx.fillStyle = stripBackground?.value || (frame.id === 'chrome' || frame.id === 'camera' ? '#d6d4cc' : (frame.id === 'doodle' ? '#111' : '#f7eee6'));
+  }
   ctx.fillRect(0, 0, baseW, baseH);
   ctx.restore();
 
@@ -128,7 +137,7 @@ export async function renderExport({
     ctx.save();
     ctx.translate(x + slotW / 2, y + slotH / 2);
     ctx.rotate((rotation + (index % 2 ? 1.5 : -1.2)) * Math.PI / 180);
-    
+
     const pScale = photoScales?.[index] || { x: 1, y: 1 };
     ctx.scale(pScale.x, pScale.y);
 
@@ -138,7 +147,7 @@ export async function renderExport({
     ctx.shadowOffsetY = 15;
     ctx.fillRect(-slotW / 2 - 10, -slotH / 2 - 10, slotW + 20, slotH + 20);
     ctx.shadowColor = 'transparent';
-    
+
     ctx.filter = filter.css || 'none';
     const fit = fitSettings?.[index] || 'cover';
     if (fit === 'contain') {
@@ -202,7 +211,7 @@ export async function renderExport({
         ctx.save();
         ctx.translate((deco.x / 100) * baseW, (deco.y / 100) * baseH);
         ctx.rotate((deco.rotation * Math.PI) / 180);
-        
+
         if (deco.isImage) {
           const sImg = loadedStickers[stickerIdx++];
           if (sImg) {
@@ -261,6 +270,12 @@ export async function renderExport({
   }
 
   ctx.restore();
+
+  // Premium pixel-level color grading (tone curves, split toning, HSL)
+  if (filter?.pixel) {
+    applyPixelFilter(ctx, filter.pixel, canvas.width, canvas.height);
+  }
+
   return canvas;
 }
 
@@ -271,12 +286,12 @@ export function loadImage(src) {
     const isDataUrl = typeof src === 'string' && src.startsWith('data:');
     const isBlobUrl = typeof src === 'string' && src.startsWith('blob:');
     const isSameOrigin = typeof src === 'string' && src.startsWith(window.location.origin);
-    
+
     // Only set crossOrigin if it's likely a cross-origin request
     if (!isDataUrl && !isBlobUrl && !isSameOrigin) {
       image.crossOrigin = 'anonymous';
     }
-    
+
     image.onload = () => resolve(image);
     image.onerror = (e) => {
       console.error(`Failed to load image: ${src.substring(0, 80)}...`, e);

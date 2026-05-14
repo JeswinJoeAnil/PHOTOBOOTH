@@ -41,6 +41,7 @@ import {
 import './styles.css';
 import { generateShuffleDecorations, triggerMagicFlashOnStrip } from './utils/shuffleDecorations.js';
 import { renderExport } from './utils/exportCanvas.js';
+import { BACKGROUNDS } from './constants/assets.js';
 
 const asset = (name) => new URL(`../assets/${name}`, import.meta.url).href;
 
@@ -82,6 +83,10 @@ const assetPhotos = [
 ];
 
 const filters = [
+  // ── No filter (pure camera image) ──
+  { id: 'normal', name: 'Normal', css: 'none', preview: ASSETS.previewDigicam },
+
+  // ── Original CSS-only filters ──
   { id: 'digicam', name: 'Retro Digicam', css: 'contrast(1.3) saturate(1.45) brightness(1.08) sepia(0.05)', preview: ASSETS.previewDigicam },
   { id: 'vhs', name: 'VHS', css: 'contrast(1.2) saturate(0.6) hue-rotate(-25deg) blur(0.35px) sepia(0.1)', preview: ASSETS.previewVhs },
   { id: 'grain', name: 'Film Grain', css: 'sepia(0.4) contrast(1.5) brightness(0.9) saturate(1.2) hue-rotate(-10deg)', preview: ASSETS.previewGrain },
@@ -91,6 +96,18 @@ const filters = [
   { id: 'warm', name: 'Warm Vintage', css: 'sepia(0.65) saturate(1.35) contrast(0.7) brightness(1.2) hue-rotate(-15deg)', preview: ASSETS.previewWarm },
   { id: 'silver', name: 'Cool Silver', css: 'grayscale(0.9) contrast(1.5) brightness(1.2) hue-rotate(180deg) saturate(0.8)', preview: ASSETS.previewSilver },
   { id: 'polaroid', name: 'Faded Polaroid', css: 'contrast(0.7) saturate(0.5) brightness(1.3) sepia(0.2) hue-rotate(-5deg)', preview: ASSETS.previewPolaroid },
+
+  // ── Premium film looks (vibrant) ──
+  { id: 'cinematic', name: 'Cinematic Gold', css: 'contrast(1.2) saturate(1.15) brightness(0.98) sepia(0.06)', preview: ASSETS.previewWarm, pixel: { curve: [[0, 3], [32, 34], [64, 68], [128, 132], [192, 205], [255, 253]], splitTone: { shadows: [60, 80, 105], highlights: [255, 210, 155], balance: 0.45, amount: 0.15 } } },
+  { id: 'neon', name: 'Neon Overdrive', css: 'contrast(1.15) saturate(1.5) hue-rotate(-20deg) brightness(1.05)', preview: ASSETS.previewCrt, pixel: { curve: [[0, 3], [32, 35], [64, 68], [128, 135], [192, 212], [255, 255]], splitTone: { shadows: [140, 60, 180], highlights: [0, 230, 220], balance: 0.5, amount: 0.15 }, chromaticAberration: 3, glitch: 0.3, scanlines: { opacity: 0.12 } } },
+  { id: 'disposable', name: 'Disposable', css: 'contrast(0.92) saturate(0.95) brightness(1.1) sepia(0.04)', preview: ASSETS.previewBloom, pixel: { curve: [[0, 12], [32, 42], [64, 75], [128, 132], [192, 200], [255, 248]], splitTone: { shadows: [150, 165, 155], highlights: [250, 240, 225], balance: 0.5, amount: 0.1 }, grain: 0.08, lightLeak: { count: 1, opacity: 0.12, color: [255, 210, 140] }, vignette: 0.2 } },
+  { id: 'film70s', name: '1970s Film', css: 'sepia(0.25) saturate(1.25) contrast(0.92) brightness(1.02)', preview: ASSETS.previewGrain, pixel: { curve: [[0, 8], [32, 38], [64, 72], [128, 130], [192, 200], [255, 248]], splitTone: { shadows: [230, 195, 160], highlights: [255, 235, 205], balance: 0.45, amount: 0.12 }, grain: 0.08, lightLeak: { count: 1, opacity: 0.08, color: [240, 140, 60] } } },
+  { id: 'cyberpunk', name: 'Cyberpunk', css: 'contrast(1.1) saturate(1.4) hue-rotate(-5deg) brightness(1.02)', preview: ASSETS.previewCrt, pixel: { curve: [[0, 2], [32, 34], [64, 68], [128, 136], [192, 210], [255, 255]], splitTone: { shadows: [210, 200, 80], highlights: [255, 100, 190], balance: 0.45, amount: 0.15 }, chromaticAberration: 1.5, glitch: 0.15, scanlines: { opacity: 0.08 } } },
+  { id: 'bleach', name: 'Bleach Bypass', css: 'contrast(1.4) saturate(0.8) brightness(1.08)', preview: ASSETS.previewSilver, pixel: { curve: [[0, 2], [32, 30], [64, 64], [128, 135], [192, 212], [255, 255]], tint: { color: [215, 210, 200], strength: 0.15 }, grain: 0.06 } },
+  { id: 'lomo', name: 'Lomo', css: 'contrast(1.2) saturate(1.4) brightness(1.06) sepia(0.06)', preview: ASSETS.previewBloom, pixel: { curve: [[0, 3], [32, 34], [64, 70], [128, 138], [192, 212], [255, 255]], splitTone: { shadows: [225, 200, 175], highlights: [255, 240, 220], balance: 0.4, amount: 0.12 }, vignette: 0.2, grain: 0.05 } },
+  { id: 'noir', name: 'Noir', css: 'grayscale(0.9) contrast(1.5) brightness(0.95)', preview: ASSETS.previewSilver, pixel: { curve: [[0, 0], [32, 30], [64, 64], [128, 135], [192, 215], [255, 255]], splitTone: { shadows: [40, 40, 50], highlights: [230, 235, 245], balance: 0.4, amount: 0.25 }, grain: 0.06 } },
+  { id: 'vhsglitch', name: 'VHS Glitch', css: 'contrast(1.05) saturate(0.85) hue-rotate(-10deg)', preview: ASSETS.previewVhs, pixel: { chromaticAberration: 4, glitch: 0.5, scanlines: { opacity: 0.2, rgbShift: 2 } } },
+  { id: 'dreampop', name: 'Dream Pop', css: 'brightness(1.1) saturate(1.05) contrast(0.9) sepia(0.03)', preview: ASSETS.previewPolaroid, pixel: { curve: [[0, 20], [32, 48], [64, 78], [128, 132], [192, 195], [255, 242]], splitTone: { shadows: [155, 170, 215], highlights: [255, 215, 230], balance: 0.5, amount: 0.12 } } },
 ];
 
 const frames = [
@@ -188,6 +205,7 @@ function App() {
   const [mirrorOn, setMirrorOn] = useState(true);
   const [isFeedbackOpen, setFeedbackOpen] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
+  const [stripBackground, setStripBackground] = useState(BACKGROUNDS[0]);
 
   // ── Page navigation: 'capture' or 'editor' ──
   const [currentPage, setCurrentPage] = useState('capture');
@@ -202,7 +220,7 @@ function App() {
 
   const selectedFilter = {
     ...activeFilter,
-    css: `${activeFilter.css} contrast(${1 + grain / 420}) brightness(${1 + lightLeak / 600})`,
+    css: `${activeFilter.css === 'none' ? '' : activeFilter.css} contrast(${1 + grain / 420}) brightness(${1 + lightLeak / 600})`,
   };
 
   const handleShuffle = () => {
@@ -374,6 +392,7 @@ function App() {
                     photoScales={photoScales}
                     setPhotoScales={setPhotoScales}
                     timestamp={timestamp}
+                    stripBackground={stripBackground}
                   />
                 </div>
               </div>
@@ -423,6 +442,7 @@ function App() {
                     fitSettings={fitSettings} setFitSettings={setFitSettings}
                     mode={mode}
                     onShuffle={handleShuffle}
+                    stripBackground={stripBackground} setStripBackground={setStripBackground}
                   />
                 </div>
 
@@ -447,6 +467,7 @@ function App() {
                     onShuffle={handleShuffle}
                     resultImage={resultImage}
                     setResultImage={setResultImage}
+                    stripBackground={stripBackground}
                     exportOnly
                   />
                 </div>
@@ -802,12 +823,14 @@ function StripEditor(props) {
     fitSettings, setFitSettings,
     mode,
     onShuffle,
+    stripBackground, setStripBackground,
   } = props;
 
   const tabs = [
     { id: 'text', icon: Type, label: 'Text' },
     { id: 'stickers', icon: Sticker, label: 'Stickers' },
     { id: 'doodle', icon: MousePointer2, label: 'Doodle' },
+    { id: 'bg', icon: ImageIcon, label: 'Back' },
     { id: 'layout', icon: Layout, label: 'Layout' },
   ];
 
@@ -959,6 +982,28 @@ function StripEditor(props) {
           </div>
         )}
 
+        {stripTab === 'bg' && (
+          <div className="bg-picker">
+            <p className="panel-hint">Choose a background for your photostrip</p>
+            <div className="bg-grid">
+              {BACKGROUNDS.map((bg) => (
+                <button
+                  key={bg.id}
+                  type="button"
+                  className={`bg-swatch ${stripBackground?.id === bg.id ? 'active' : ''}`}
+                  onClick={() => setStripBackground(bg)}
+                  title={bg.label}
+                  style={{
+                    background: bg.type === 'solid' ? bg.value : `linear-gradient(135deg, ${bg.from}, ${bg.to})`,
+                  }}
+                >
+                  <span className="bg-label">{bg.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {stripTab === 'layout' && (
           <motion.div className="layout-editor" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
             <p className="panel-hint" style={{ marginBottom: '16px' }}>
@@ -1079,6 +1124,7 @@ function MemoryLab(props) {
     mode,
     onShuffle,
     resultImage, setResultImage,
+    stripBackground,
   } = props;
   const exportRef = useRef(null);
 
@@ -1087,19 +1133,20 @@ function MemoryLab(props) {
     try {
       await new Promise((resolve) => window.setTimeout(resolve, 1350));
       if (type === 'png' || type === 'jpg') {
-        const canvas = await renderExport({ 
-          frame, 
-          photos, 
-          filter, 
-          accent, 
-          decorations, 
-          doodlePaths, 
-          zoom, 
-          rotation, 
-          vignette, 
-          fitSettings, 
-          photoScales, 
-          timestamp 
+        const canvas = await renderExport({
+          frame,
+          photos,
+          filter,
+          accent,
+          decorations,
+          doodlePaths,
+          zoom,
+          rotation,
+          vignette,
+          fitSettings,
+          photoScales,
+          timestamp,
+          stripBackground
         });
 
         // Use toBlob instead of toDataURL to prevent "Download Failed" errors on large images
@@ -1111,7 +1158,7 @@ function MemoryLab(props) {
               return;
             }
             const url = URL.createObjectURL(blob);
-            
+
             // MOBILE FIX: On mobile, browsers often block direct downloads from blobs
             // Instead, we show the image in a modal so they can long-press to save
             const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -1164,7 +1211,7 @@ function MemoryLab(props) {
           </div>
           <AnimatePresence>
             {resultImage && (
-              <motion.div 
+              <motion.div
                 className="mobile-result-overlay"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -1182,7 +1229,7 @@ function MemoryLab(props) {
                   <div className="result-img-container">
                     <img src={resultImage} alt="Your photobooth strip" />
                   </div>
-                  <button 
+                  <button
                     className="close-result"
                     onClick={() => {
                       URL.revokeObjectURL(resultImage);
@@ -1218,6 +1265,7 @@ function MemoryLab(props) {
               photoScales={photoScales}
               setPhotoScales={setPhotoScales}
               timestamp={timestamp}
+              stripBackground={stripBackground}
             />
           </div>
 
@@ -1237,6 +1285,7 @@ function MemoryLab(props) {
             setFitSettings={setFitSettings}
             mode={mode}
             onShuffle={onShuffle}
+            stripBackground={stripBackground} setStripBackground={setStripBackground}
           />
 
           <div className="memory-sidebar">
@@ -1258,7 +1307,7 @@ function MemoryLab(props) {
               </div>
               <AnimatePresence>
                 {resultImage && (
-                  <motion.div 
+                  <motion.div
                     className="mobile-result-overlay"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -1276,7 +1325,7 @@ function MemoryLab(props) {
                       <div className="result-img-container">
                         <img src={resultImage} alt="Your photobooth strip" />
                       </div>
-                      <button 
+                      <button
                         className="close-result"
                         onClick={() => {
                           URL.revokeObjectURL(resultImage);
@@ -1314,7 +1363,7 @@ function MemoryLab(props) {
   );
 }
 
-function PhotoResult({ frame, photos, filter, accent, decorations, setDecorations, activeDecoId, setActiveDecoId, doodlePaths, setDoodlePaths, doodleBrush, stripTab, zoom, rotation, vignette, fitSettings, photoScales, setPhotoScales, timestamp }) {
+function PhotoResult({ frame, photos, filter, accent, decorations, setDecorations, activeDecoId, setActiveDecoId, doodlePaths, setDoodlePaths, doodleBrush, stripTab, zoom, rotation, vignette, fitSettings, photoScales, setPhotoScales, timestamp, stripBackground }) {
   const wrapperRef = useRef(null);
   const stripRef = useRef(null);
   const [scale, setScale] = useState(1);
@@ -1345,6 +1394,9 @@ function PhotoResult({ frame, photos, filter, accent, decorations, setDecoration
         style={{
           '--accent': accent,
           '--vignette': `${vignette / 100}`,
+          background: stripBackground?.type === 'gradient'
+            ? `linear-gradient(180deg, ${stripBackground.from}, ${stripBackground.to})`
+            : (stripBackground?.value || ''),
           transform: `scale(${scale}) rotate(-1.5deg)`,
           transformOrigin: 'top center',
           // collapse the dead space below the scaled strip
@@ -1521,10 +1573,10 @@ function DecoHandles({ deco, setDecorations, elementRef, hideDelete = false }) {
       const dist = Math.hypot(moveEvent.clientX - centerX, moveEvent.clientY - centerY);
       const startDist = Math.hypot(startX - centerX, startY - centerY);
       const ratio = dist / startDist;
-      
+
       const newScaleX = Math.max(0.1, startScaleX * ratio);
       const newScaleY = Math.max(0.1, startScaleY * ratio);
-      
+
       setDecorations(prev => prev.map(d => d.id === deco.id ? { ...d, scaleX: newScaleX, scaleY: newScaleY } : d));
     };
     const onUp = (upEvent) => {

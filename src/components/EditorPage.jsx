@@ -53,6 +53,7 @@ function EditorPageComponent(props) {
     setLightLeak,
     editorTab,
     setEditorTab,
+    stripBackground,
   } = props;
 
   return (
@@ -136,6 +137,7 @@ function EditorPageComponent(props) {
           timestamp={timestamp}
           mode={mode}
           onShuffle={onShuffle}
+          stripBackground={stripBackground}
         />
       </section>
       <Footer />
