@@ -3777,33 +3777,135 @@ main {
 }
 
 /* ── Responsive: editor split → stack on mobile ── */
+/* ── Responsive: editor split → viewport-locked split-pane layout on mobile ── */
 @media (max-width: 900px) {
+  /* Prevent full-page scrolling inside editor mode, keeping scrolling confined to the controls drawer */
+  body:has(.editor-page) {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+
+  .editor-page {
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height to handle mobile navigation bars beautifully */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .editor-page-header {
+    position: relative;
+    top: 0;
+    margin: 8px 8px 4px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    box-shadow: 0 4px 12px rgba(10, 8, 7, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .editor-page-header .editor-page-title {
+    font-size: 14px;
+    gap: 4px;
+    font-weight: 800;
+  }
+
+  .editor-page-header .back-to-booth-btn,
+  .editor-page-header .retake-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+
   .editor-split {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0; /* Critical: allows flex item to shrink and scroll internal elements */
+    gap: 8px;
     padding: 0 8px;
-    min-height: auto;
+    margin: 0;
+    max-width: 100%;
   }
 
   .editor-strip-col {
     position: relative;
-    top: 0;
-    height: auto;
-    max-height: 60vh;
-    padding: 12px 0;
+    top: auto;
+    z-index: 10;
+    height: clamp(340px, 48vh, 420px); /* Taller preview panel to make the strip large, clear and readable */
+    flex-shrink: 0;
+    padding: 8px 0;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 80%);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto; /* Re-enable pointer events since no scrolling overlaps occur */
   }
 
   .editor-strip-canvas {
-    height: auto;
-    max-height: 55vh;
+    width: 100%;
+    height: 100%;
     margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+  }
+
+  /* Override photostrip scale origin inside the editor to achieve perfect vertical centering */
+  .editor-strip-canvas .photo-result {
+    transform-origin: center center !important;
+    margin-bottom: 0 !important;
+    filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.3)) drop-shadow(0 8px 24px rgba(0, 0, 0, 0.18));
   }
 
   .editor-controls-col {
-    padding: 0 0 40px;
+    flex: 1;
+    overflow-y: auto; /* Scroll ONLY the controls drawer */
+    min-height: 0;
+    padding: 4px 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    -webkit-overflow-scrolling: touch; /* Smooth inertia scroll on iOS */
+  }
+
+  /* Ultra-minimal scrollbar design for the controls drawer */
+  .editor-controls-col::-webkit-scrollbar {
+    width: 4px;
+  }
+  .editor-controls-col::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .editor-controls-col::-webkit-scrollbar-thumb {
+    background: rgba(10, 8, 7, 0.15);
+    border-radius: 10px;
+  }
+
+  .editor-controls-card {
+    border-radius: 16px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    box-shadow: 0 6px 20px rgba(10, 8, 7, 0.03);
+  }
+
+  /* Hide footer in editor mode on mobile to conserve screen space */
+  .editor-page .site-footer {
+    display: none !important;
   }
 
   .editor-export-card .export-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
   }
 }

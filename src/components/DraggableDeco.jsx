@@ -12,7 +12,7 @@ export function DraggableDeco({ deco, setDecorations, isActive, onPointerDown })
     if (e.target.closest('.deco-handle')) return;
 
     e.preventDefault();
-    const target = e.currentTarget;
+   const target = e.currentTarget;
     target.setPointerCapture(e.pointerId);
 
     const startX = e.clientX;
